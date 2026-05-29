@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>AP3X AnxietyCore — Clinician Dashboard</title>
+<style>
+:root{
+  --bg:#f0f4f8;--surface:#fff;--surface2:#e8f0fe;--sidebar:#0f2d52;
+  --sidebar-txt:#c8d8f0;--sidebar-act:#2563eb;--border:#d1dce8;
+  --primary:#2563eb;--primary-d:#1d4ed8;--accent:#10b981;
+  --text:#1e293b;--muted:#64748b;--light:#94a3b8;
+  --low:#10b981;--medium:#f59e0b;--high:#ef4444;--critical:#7c3aed;--missing:#64748b;
+  --r:10px;--rs:6px;--shadow:0 2px 8px rgba(15,45,82,.08);--shadow-md:0 4px 16px rgba(15,45,82,.12);
+  --sw:220px;--t:.18s ease;
+}
+[data-theme=dark]{
+  --bg:#0a1526;--surface:#111f35;--surface2:#1a2d48;--border:#1e3050;
+  --text:#dde8f8;--muted:#7a90b0;--light:#3a5070;--sidebar:#07111f;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text);display:flex;min-height:100vh;font-size:14px;line-height:1.5}
+
+/* layout */
+.layout{display:flex;width:100%;min-height:100vh}
+.sidebar{width:var(--sw);min-height:100vh;background:var(--sidebar);display:flex;flex-direction:column;flex-shrink:0;position:sticky;top:0;height:100vh;overflow-y:auto}
+.sb-brand{display:flex;align-items:center;gap:10px;padding:20px 16px;border-bottom:1px solid rgba(255,255,255,.08)}
+.sb-dot{width:10px;height:10px;border-radius:50%;background:var(--sidebar-act);flex-shrink:0}
+.sb-name{color:#fff;font-size:15px;font-weight:800}
+.sb-sub{color:var(--sidebar-txt);font-size:11px}
+.sb-nav{flex:1;padding:16px 8px;display:flex;flex-direction:column;gap:4px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--rs);background:none;border:none;color:var(--sidebar-txt);font-size:13px;font-weight:500;cursor:pointer;transition:all var(--t);text-align:left;width:100%}
+.nav-item:hover{background:rgba(255,255,255,.06);color:#fff}
+.nav-item.active{background:var(--sidebar-act);color:#fff}
+.nav-badge{margin-left:auto;background:var(--high);color:#fff;font-size:11px;font-weight:700;border-radius:99px;padding:1px 7px;min-width:20px;text-align:center}
+.sb-footer{padding:16px;border-top:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.sb-ver{color:rgba(255,255,255,.3);font-size:11px;flex:1}
+.btn-icon-sm{background:none;border:none;font-size:16px;cursor:pointer;color:#fff}
+.back-btn{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:var(--sidebar-txt);border-radius:var(--rs);padding:4px 10px;font-size:11px;cursor:pointer;text-decoration:none;display:inline-block}
+.back-btn:hover{color:#fff}
+
+/* main */
+.main-area{flex:1;min-width:0;display:flex;flex-direction:column;padding-bottom:48px}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:16px 24px;background:var(--surface);border-bottom:1px solid var(--border);box-shadow:var(--shadow);position:sticky;top:0;z-index:50}
+.topbar-title{font-size:18px;font-weight:700}
+.topbar-right{display:flex;align-items:center;gap:16px}
+.rt-ind{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--accent);font-weight:600}
+.pulse{width:8px;height:8px;border-radius:50%;background:var(--accent);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.3)}}
+
+/* views */
+.view{padding:24px;animation:fadeIn .2s ease}
+.view.hidden{display:none!important}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.view-desc{color:var(--muted);font-size:13px;margin-bottom:16px}
+
+/* stats */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+.stat-card{background:var(--surface);border-radius:var(--r);padding:16px 20px;box-shadow:var(--shadow);border-left:4px solid var(--primary)}
+.stat-card.w{border-left-color:var(--medium)}.stat-card.d{border-left-color:var(--high)}.stat-card.m{border-left-color:var(--missing)}
+.stat-val{font-size:28px;font-weight:800}
+.stat-lbl{font-size:12px;color:var(--muted);margin-top:2px;text-transform:uppercase;letter-spacing:.05em}
+
+/* patient grid */
+.patient-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px}
+.pc{background:var(--surface);border-radius:var(--r);padding:16px;box-shadow:var(--shadow);border-top:3px solid var(--border);cursor:pointer;transition:all var(--t)}
+.pc:hover{box-shadow:var(--shadow-md);transform:translateY(-2px)}
+.pc.HIGH{border-top-color:var(--high)}.pc.CRITICAL{border-top-color:var(--critical)}.pc.MEDIUM{border-top-color:var(--medium)}.pc.LOW{border-top-color:var(--low)}.pc.MISSING_DATA,.pc.MISSING{border-top-color:var(--missing);background:var(--surface2)}
+.pc-hdr{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px}
+.pc-name{font-size:15px;font-weight:700}
+.pc-id{font-size:11px;color:var(--muted);margin-top:1px}
+.pc-score{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;flex-shrink:0}
+.pc-score.sl{background:#d1fae5;color:#065f46}.pc-score.sm{background:#fef3c7;color:#92400e}.pc-score.sh{background:#fee2e2;color:#991b1b}.pc-score.sc{background:#ede9fe;color:#4c1d95}.pc-score.sn{background:var(--surface2);color:var(--muted);font-size:14px}
+.pc-footer{display:flex;align-items:center;justify-content:space-between;margin-top:10px}
+.rb{display:inline-flex;align-items:center;padding:3px 10px;border-radius:99px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em}
+.rb.LOW{background:#d1fae5;color:#065f46}.rb.MEDIUM{background:#fef3c7;color:#92400e}.rb.HIGH{background:#fee2e2;color:#991b1b}.rb.CRITICAL{background:#ede9fe;color:#4c1d95}.rb.MISSING_DATA,.rb.MISSING{background:#f1f5f9;color:#475569}
+.tu{color:var(--high);font-weight:700}.td{color:var(--accent);font-weight:700}.tf{color:var(--muted)}
+
+/* table */
+.tbl-toolbar{display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+.search-input{flex:1;min-width:200px;padding:8px 12px;background:var(--surface);border:1.5px solid var(--border);border-radius:var(--rs);font-size:14px;color:var(--text)}
+.search-input:focus{outline:none;border-color:var(--primary)}
+.filter-sel{padding:8px 10px;background:var(--surface);border:1.5px solid var(--border);border-radius:var(--rs);font-size:13px;color:var(--text);cursor:pointer}
+.filter-sel.sm{padding:6px 8px;font-size:12px}
+.tbl-wrap{overflow-x:auto;background:var(--surface);border-radius:var(--r);box-shadow:var(--shadow)}
+table{width:100%;border-collapse:collapse}
+th{padding:12px 14px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);border-bottom:1.5px solid var(--border);white-space:nowrap}
+td{padding:12px 14px;border-bottom:1px solid var(--border);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:var(--surface2);cursor:pointer}
+.btn-view{padding:5px 12px;background:var(--surface2);border:1.5px solid var(--primary);color:var(--primary);border-radius:var(--rs);font-size:12px;font-weight:600;cursor:pointer;transition:all var(--t)}
+.btn-view:hover{background:var(--primary);color:#fff}
+
+/* detail */
+.detail{position:fixed;top:0;right:0;width:min(520px,100vw);height:100vh;background:var(--surface);border-left:1px solid var(--border);box-shadow:-8px 0 32px rgba(0,0,0,.12);z-index:200;overflow-y:auto;animation:slideIn .25s ease}
+.detail.hidden{display:none!important}
+@keyframes slideIn{from{transform:translateX(40px);opacity:0}to{transform:translateX(0);opacity:1}}
+.d-inner{padding:24px}
+.d-hdr{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px}
+.d-name{font-size:20px;font-weight:800}
+.d-meta{font-size:13px;color:var(--muted);margin-top:2px}
+.btn-close{background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs);width:32px;height:32px;font-size:14px;cursor:pointer;flex-shrink:0}
+.d-risk-row{display:flex;align-items:center;gap:12px;margin-bottom:20px}
+.d-lastseen{font-size:12px;color:var(--muted)}
+.d-section{margin-bottom:24px}
+.d-sec-title{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.chart-wrap-d{background:var(--surface2);border-radius:var(--rs);padding:12px}
+.d-list{display:flex;flex-direction:column;gap:6px}
+.d-list-item{padding:8px 12px;background:var(--surface2);border-radius:var(--rs);font-size:13px}
+.d-item-date{font-size:11px;color:var(--muted);margin-top:2px}
+.flag-list{display:flex;flex-wrap:wrap;gap:6px}
+.flag-chip{padding:4px 10px;border-radius:99px;font-size:11px;font-weight:600;background:#fee2e2;color:#991b1b}
+textarea{width:100%;padding:10px 12px;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--rs);font-size:14px;color:var(--text);font-family:inherit;resize:vertical;margin-bottom:8px}
+textarea:focus{outline:none;border-color:var(--primary)}
+.note-actions{display:flex;gap:8px;align-items:center}
+.btn-primary{padding:8px 18px;background:var(--primary);color:#fff;border:none;border-radius:var(--rs);font-size:14px;font-weight:700;cursor:pointer}
+.btn-primary:hover{background:var(--primary-d)}
+.btn-primary.sm{padding:6px 14px;font-size:13px}
+.note-item{padding:10px 12px;background:var(--surface2);border-radius:var(--rs);margin-bottom:6px;border-left:3px solid var(--primary)}
+.note-text{font-size:13px}.note-meta{font-size:11px;color:var(--muted);margin-top:3px}
+
+.cli-footer{padding:12px 24px;font-size:11px;color:var(--light);border-top:1px solid var(--border);background:var(--surface);line-height:1.4}
+.hidden{display:none!important}
+.empty-state{color:var(--muted);font-size:13px;padding:16px 0;text-align:center}
+
+@media(max-width:768px){
+  .stats-row{grid-template-columns:repeat(2,1fr)}
+  .sidebar{width:60px}
+  .sb-name,.sb-sub,.nav-item span:last-child,.sb-ver{display:none}
+  .nav-item{justify-content:center;padding:12px}
+  .sb-footer{justify-content:center}
+  .back-btn,.btn-icon-sm{display:none}
+}
+</style>
+</head>
+<body data-theme="light">
+<div class="layout">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sb-brand">
+      <div class="sb-dot"></div>
+      <div><div class="sb-name">AP3X</div><div class="sb-sub">Clinician</div></div>
+    </div>
+    <nav class="sb-nav">
+      <button class="nav-item active" data-view="overview">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        <span>Overview</span>
+      </button>
+      <button class="nav-item" data-view="at-risk">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <span>At Risk</span>
+        <span class="nav-badge" id="at-risk-badge">0</span>
+      </button>
+      <button class="nav-item" data-view="patients">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span>All Patients</span>
+      </button>
+    </nav>
+    <div class="sb-footer">
+      <button class="btn-icon-sm" id="theme-btn">🌙</button>
+      <span class="sb-ver">AP3X v1.0</span>
+      <a href="index.html" class="back-btn">← Home</a>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <div class="main-area">
+    <header class="topbar">
+      <h1 class="topbar-title" id="view-title">Overview</h1>
+      <div class="topbar-right">
+        <div class="rt-ind"><span class="pulse"></span><span>Live</span></div>
+        <span style="font-size:13px;color:var(--muted)">Dr. Morgan · Clinician</span>
+      </div>
+    </header>
+
+    <!-- Overview -->
+    <section id="view-overview" class="view">
+      <div class="stats-row">
+        <div class="stat-card"><div class="stat-val" id="s-total">6</div><div class="stat-lbl">Total Patients</div></div>
+        <div class="stat-card w"><div class="stat-val" id="s-risk">3</div><div class="stat-lbl">At Risk</div></div>
+        <div class="stat-card d"><div class="stat-val" id="s-crit">0</div><div class="stat-lbl">Critical</div></div>
+        <div class="stat-card m"><div class="stat-val" id="s-miss">1</div><div class="stat-lbl">Missing Data</div></div>
+      </div>
+      <div class="patient-grid" id="overview-grid"></div>
+    </section>
+
+    <!-- At Risk -->
+    <section id="view-at-risk" class="view hidden">
+      <p class="view-desc">Patients with HIGH, CRITICAL, or MISSING DATA status.</p>
+      <div class="patient-grid" id="at-risk-grid"></div>
+    </section>
+
+    <!-- All Patients table -->
+    <section id="view-patients" class="view hidden">
+      <div class="tbl-toolbar">
+        <input type="search" id="search-input" class="search-input" placeholder="Search patients…"/>
+        <select id="risk-filter" class="filter-sel">
+          <option value="">All risk levels</option>
+          <option value="LOW">Low</option>
+          <option value="MEDIUM">Medium</option>
+          <option value="HIGH">High</option>
+          <option value="CRITICAL">Critical</option>
+          <option value="MISSING_DATA">Missing Data</option>
+        </select>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Patient</th><th>Last Check-in</th><th>Score</th><th>Risk</th><th>Trend</th><th></th></tr></thead>
+          <tbody id="patient-tbody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <footer class="cli-footer">AP3X AnxietyCore — Monitoring only. NOT a medical device. Does not provide medical diagnoses. All outputs are informational.</footer>
+  </div>
+
+  <!-- Detail panel -->
+  <div class="detail hidden" id="detail-panel">
+    <div class="d-inner">
+      <div class="d-hdr">
+        <div><div class="d-name" id="d-name">—</div><div class="d-meta" id="d-meta">—</div></div>
+        <button class="btn-close" id="close-detail">✕</button>
+      </div>
+      <div class="d-risk-row">
+        <span class="rb" id="d-risk-badge">—</span>
+        <span class="d-lastseen" id="d-lastseen">—</span>
+      </div>
+      <div class="d-section">
+        <div class="d-sec-title">Anxiety Timeline</div>
+        <div class="chart-wrap-d"><canvas id="d-chart" height="140"></canvas></div>
+      </div>
+      <div class="d-section">
+        <div class="d-sec-title">Recent Mood Notes</div>
+        <div id="d-moods" class="d-list"></div>
+      </div>
+      <div class="d-section">
+        <div class="d-sec-title">Active Flags</div>
+        <div id="d-flags" class="flag-list"></div>
+      </div>
+      <div class="d-section">
+        <div class="d-sec-title">Clinician Notes</div>
+        <div id="d-notes"></div>
+        <textarea id="new-note" placeholder="Add a clinician note…" rows="3"></textarea>
+        <div class="note-actions">
+          <select id="followup-sel" class="filter-sel sm">
+            <option value="">No follow-up</option>
+            <option value="MONITOR">Monitor closely</option>
+            <option value="REVIEW">Schedule review</option>
+            <option value="URGENT">Urgent contact</option>
+          </select>
+          <button class="btn-primary sm" id="save-note">Save Note</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ── Demo patient data ─────────────────────────────────────────
+function makeLogs(scores){
+  const now=Date.now();
+  return scores.map((s,i)=>({anxiety_score:s,note:i===scores.length-1&&s>=7?"Feeling overwhelmed lately":"",created_at:new Date(now-(scores.length-1-i)*86400000).toISOString()}));
+}
+const PATIENTS=[
+  {user_id:"p001",name:"Alex T.",latest_score:9,last_checkin:new Date(Date.now()-2*3600000).toISOString(),risk:"HIGH",flags:["HIGH_SINGLE_SCORE","LOW_SLEEP_HIGH_ANXIETY"],trend:"up",logs:makeLogs([5,6,7,8,9]),sleep_hours:3,moods:["Feeling really stressed","Can't stop worrying"]},
+  {user_id:"p002",name:"Jordan M.",latest_score:6,last_checkin:new Date(Date.now()-5*3600000).toISOString(),risk:"MEDIUM",flags:["CONSECUTIVE_MEDIUM_SCORES"],trend:"flat",logs:makeLogs([6,7,6,6,6]),sleep_hours:6,moods:["Work pressure building up"]},
+  {user_id:"p003",name:"Sam R.",latest_score:3,last_checkin:new Date(Date.now()-18*3600000).toISOString(),risk:"LOW",flags:[],trend:"down",logs:makeLogs([8,7,5,4,3]),sleep_hours:7.5,moods:["Feeling much better today","Went for a walk"]},
+  {user_id:"p004",name:"Casey L.",latest_score:null,last_checkin:null,risk:"MISSING_DATA",flags:["NO_DATA"],trend:"flat",logs:[],sleep_hours:null,moods:[]},
+  {user_id:"p005",name:"River K.",latest_score:8,last_checkin:new Date(Date.now()-1*3600000).toISOString(),risk:"HIGH",flags:["HIGH_SINGLE_SCORE"],trend:"up",logs:makeLogs([4,5,6,7,8]),sleep_hours:4,moods:["Panic attack this morning"]},
+  {user_id:"p006",name:"Morgan S.",latest_score:2,last_checkin:new Date(Date.now()-8*3600000).toISOString(),risk:"LOW",flags:[],trend:"down",logs:makeLogs([5,4,3,2,2]),sleep_hours:8,moods:["Great session with therapist","Sleeping better"]}
+];
+
+// ── Notes (persisted per patient) ─────────────────────────────
+function getNotes(pid){try{return JSON.parse(localStorage.getItem("ap3x_cli_notes_"+pid)||"[]")}catch{return[]}}
+function saveNote(pid,text,fu){
+  const notes=getNotes(pid);
+  notes.unshift({id:crypto.randomUUID(),note_text:text,follow_up_status:fu||null,created_at:new Date().toISOString()});
+  localStorage.setItem("ap3x_cli_notes_"+pid,JSON.stringify(notes.slice(0,50)));
+}
+
+// ── State ─────────────────────────────────────────────────────
+let _active=null,_filterRisk="",_search="";
+
+// ── Render all ────────────────────────────────────────────────
+function render(){
+  const atRisk=PATIENTS.filter(p=>["HIGH","CRITICAL","MISSING_DATA","MISSING"].includes(p.risk));
+  document.getElementById("s-total").textContent=PATIENTS.length;
+  document.getElementById("s-risk").textContent=atRisk.length;
+  document.getElementById("s-crit").textContent=PATIENTS.filter(p=>p.risk==="CRITICAL").length;
+  document.getElementById("s-miss").textContent=PATIENTS.filter(p=>["MISSING_DATA","MISSING"].includes(p.risk)).length;
+  document.getElementById("at-risk-badge").textContent=atRisk.length;
+
+  const og=document.getElementById("overview-grid");
+  og.innerHTML=PATIENTS.map(cardHTML).join("");
+  og.querySelectorAll(".pc").forEach(c=>c.addEventListener("click",()=>openDetail(c.dataset.uid)));
+
+  const ag=document.getElementById("at-risk-grid");
+  ag.innerHTML=atRisk.length?atRisk.map(cardHTML).join(""):`<p class="empty-state">No at-risk patients 🟢</p>`;
+  ag.querySelectorAll(".pc").forEach(c=>c.addEventListener("click",()=>openDetail(c.dataset.uid)));
+
+  renderTable();
+}
+
+function cardHTML(p){
+  const sc=p.latest_score!==null?p.latest_score:"–";
+  const scCls=p.latest_score===null?"sn":p.latest_score>=8?"sh":p.latest_score>=6?"sm":p.latest_score>=4?"sm":"sl";
+  const ti=p.trend==="up"?"↑":p.trend==="down"?"↓":"→";
+  const tCls=p.trend==="up"?"tu":p.trend==="down"?"td":"tf";
+  const spark=miniSpark(p.logs.map(l=>l.anxiety_score));
+  return`<div class="pc ${p.risk}" data-uid="${esc(p.user_id)}">
+    <div class="pc-hdr"><div><div class="pc-name">${esc(p.name)}</div><div class="pc-id">Last: ${p.last_checkin?relTime(p.last_checkin):"No data"}</div></div><div class="pc-score ${scCls}">${sc}</div></div>
+    ${spark?`<svg viewBox="0 0 80 36" style="width:100%;height:36px;display:block">${spark}</svg>`:`<div style="height:36px"></div>`}
+    <div class="pc-footer"><span class="rb ${p.risk}">${riskLabel(p.risk)}</span><span class="${tCls}">${ti}</span></div>
+  </div>`;
+}
+
+function renderTable(){
+  let pts=PATIENTS;
+  if(_filterRisk) pts=pts.filter(p=>p.risk===_filterRisk||((_filterRisk==="MISSING_DATA")&&p.risk==="MISSING"));
+  if(_search){const q=_search.toLowerCase();pts=pts.filter(p=>p.name.toLowerCase().includes(q))}
+  const tbody=document.getElementById("patient-tbody");
+  if(!pts.length){tbody.innerHTML=`<tr><td colspan="6" class="empty-state">No patients match.</td></tr>`;return}
+  tbody.innerHTML=pts.map(p=>{
+    const tCls=p.trend==="up"?"tu":p.trend==="down"?"td":"tf";
+    const ti=p.trend==="up"?"↑":p.trend==="down"?"↓":"→";
+    return`<tr data-uid="${esc(p.user_id)}"><td><strong>${esc(p.name)}</strong></td><td>${p.last_checkin?relTime(p.last_checkin):"<em>Never</em>"}</td><td>${p.latest_score!==null?p.latest_score+" / 10":"–"}</td><td><span class="rb ${p.risk}">${riskLabel(p.risk)}</span></td><td><span class="${tCls}">${ti}</span></td><td><button class="btn-view">View</button></td></tr>`;
+  }).join("");
+  tbody.querySelectorAll("tr").forEach(r=>r.addEventListener("click",()=>openDetail(r.dataset.uid)));
+}
+
+// ── Detail panel ──────────────────────────────────────────────
+function openDetail(uid){
+  const p=PATIENTS.find(x=>x.user_id===uid);if(!p)return;
+  _active=p;
+  document.getElementById("d-name").textContent=p.name;
+  document.getElementById("d-meta").textContent=`Sleep last night: ${p.sleep_hours???"unknown"} hrs`;
+  const rb=document.getElementById("d-risk-badge");rb.className="rb "+p.risk;rb.textContent=riskLabel(p.risk);
+  document.getElementById("d-lastseen").textContent=p.last_checkin?"Last check-in: "+relTime(p.last_checkin):"No check-in data";
+  setTimeout(()=>drawChart("d-chart",p.logs.map(l=>l.anxiety_score)),50);
+  const mEl=document.getElementById("d-moods");
+  mEl.innerHTML=p.moods.length?p.moods.map(m=>`<div class="d-list-item">${esc(m)}</div>`).join(""):`<p class="empty-state">No mood notes.</p>`;
+  const fEl=document.getElementById("d-flags");
+  fEl.innerHTML=p.flags.length?p.flags.map(f=>`<span class="flag-chip">${f.replace(/_/g," ")}</span>`).join(""):`<p class="empty-state">No flags.</p>`;
+  renderNotes(uid);
+  document.getElementById("detail-panel").classList.remove("hidden");
+}
+function renderNotes(uid){
+  const notes=getNotes(uid);
+  const el=document.getElementById("d-notes");
+  el.innerHTML=notes.length?notes.map(n=>`<div class="note-item"><div class="note-text">${esc(n.note_text)}</div><div class="note-meta">${fmtDate(n.created_at)}${n.follow_up_status?` · <strong>${n.follow_up_status}</strong>`:""}</div></div>`).join(""):`<p class="empty-state">No notes yet.</p>`;
+}
+
+document.getElementById("save-note").addEventListener("click",()=>{
+  if(!_active)return;
+  const text=document.getElementById("new-note").value.trim();
+  if(!text){toast("Enter a note first.");return}
+  saveNote(_active.user_id,text,document.getElementById("followup-sel").value);
+  document.getElementById("new-note").value="";
+  document.getElementById("followup-sel").value="";
+  renderNotes(_active.user_id);toast("Note saved ✓");
+});
+document.getElementById("close-detail").addEventListener("click",()=>{document.getElementById("detail-panel").classList.add("hidden");_active=null});
+
+// ── Nav ───────────────────────────────────────────────────────
+const TITLES={overview:"Overview","at-risk":"At Risk Patients",patients:"All Patients"};
+document.querySelectorAll(".nav-item[data-view]").forEach(item=>{
+  item.addEventListener("click",()=>{
+    const v=item.dataset.view;
+    document.querySelectorAll(".nav-item").forEach(n=>n.classList.remove("active"));
+    document.querySelectorAll(".view").forEach(s=>s.classList.add("hidden"));
+    item.classList.add("active");
+    document.getElementById("view-"+v).classList.remove("hidden");
+    document.getElementById("view-title").textContent=TITLES[v]||"";
+  });
+});
+document.getElementById("search-input").addEventListener("input",e=>{_search=e.target.value;renderTable()});
+document.getElementById("risk-filter").addEventListener("change",e=>{_filterRisk=e.target.value;renderTable()});
+
+// ── Theme ─────────────────────────────────────────────────────
+const themeBtn=document.getElementById("theme-btn");
+applyTheme(localStorage.getItem("ap3x_cli_theme")||"light");
+themeBtn.addEventListener("click",()=>{const n=document.body.dataset.theme==="dark"?"light":"dark";applyTheme(n);localStorage.setItem("ap3x_cli_theme",n)});
+function applyTheme(t){document.body.dataset.theme=t;themeBtn.textContent=t==="dark"?"☀️":"🌙"}
+
+// ── Chart ─────────────────────────────────────────────────────
+function drawChart(id,data){
+  const canvas=document.getElementById(id);if(!canvas)return;
+  const ctx=canvas.getContext("2d");
+  const W=canvas.offsetWidth||460,H=140,dpr=window.devicePixelRatio||1;
+  canvas.width=W*dpr;canvas.height=H*dpr;ctx.scale(dpr,dpr);ctx.clearRect(0,0,W,H);
+  if(!data||data.length<2){ctx.fillStyle="#94a3b8";ctx.font="13px system-ui";ctx.textAlign="center";ctx.fillText("No data yet",W/2,H/2);return}
+  const P={t:12,r:12,b:28,l:28},pW=W-P.l-P.r,pH=H-P.t-P.b;
+  const xp=i=>P.l+(i/(data.length-1))*pW,yp=v=>P.t+(1-v/10)*pH;
+  ctx.strokeStyle="#e2e8f0";ctx.lineWidth=1;
+  [2,4,6,8,10].forEach(v=>{ctx.beginPath();ctx.moveTo(P.l,yp(v));ctx.lineTo(W-P.r,yp(v));ctx.stroke();ctx.fillStyle="#94a3b8";ctx.font="10px system-ui";ctx.textAlign="right";ctx.fillText(String(v),P.l-4,yp(v)+3)});
+  const g=ctx.createLinearGradient(0,P.t,0,H-P.b);
+  g.addColorStop(0,"rgba(239,68,68,0.3)");g.addColorStop(.5,"rgba(245,158,11,0.15)");g.addColorStop(1,"rgba(16,185,129,0.05)");
+  ctx.beginPath();data.forEach((v,i)=>i?ctx.lineTo(xp(i),yp(v)):ctx.moveTo(xp(i),yp(v)));
+  ctx.lineTo(xp(data.length-1),H-P.b);ctx.lineTo(xp(0),H-P.b);ctx.closePath();ctx.fillStyle=g;ctx.fill();
+  ctx.beginPath();ctx.lineWidth=2.5;ctx.strokeStyle="#2563eb";ctx.lineJoin="round";
+  data.forEach((v,i)=>i?ctx.lineTo(xp(i),yp(v)):ctx.moveTo(xp(i),yp(v)));ctx.stroke();
+  data.forEach((v,i)=>{const c=v>=8?"#ef4444":v>=6?"#f59e0b":"#10b981";ctx.beginPath();ctx.arc(xp(i),yp(v),4,0,Math.PI*2);ctx.fillStyle=c;ctx.fill();ctx.strokeStyle="#fff";ctx.lineWidth=1.5;ctx.stroke()});
+}
+function miniSpark(data){
+  if(!data||data.length<2)return"";
+  const W=80,H=36,pts=data.map((v,i)=>((i/(data.length-1))*W).toFixed(1)+","+(H-(v/10)*H).toFixed(1));
+  const c=data[data.length-1]>=8?"#ef4444":data[data.length-1]>=6?"#f59e0b":"#10b981";
+  return`<polyline points="${pts.join(" ")}" fill="none" stroke="${c}" stroke-width="2" stroke-linejoin="round"/>`;
+}
+
+// ── Helpers ───────────────────────────────────────────────────
+function riskLabel(r){return{LOW:"Low",MEDIUM:"Medium",HIGH:"High",CRITICAL:"Critical",MISSING_DATA:"Missing Data",MISSING:"Missing Data"}[r]||r}
+function relTime(iso){const d=Date.now()-new Date(iso).getTime(),m=Math.floor(d/60000);if(m<60)return m+"m ago";const h=Math.floor(m/60);if(h<24)return h+"h ago";return Math.floor(h/24)+"d ago"}
+function fmtDate(iso){return new Date(iso).toLocaleString(undefined,{month:"short",day:"numeric",hour:"2-digit",minute:"2-digit"})}
+function esc(s){return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}
+function toast(msg){const t=document.createElement("div");t.style.cssText="position:fixed;bottom:24px;right:24px;background:#1e293b;color:#fff;padding:10px 18px;border-radius:8px;font-size:14px;z-index:500;";t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),2500)}
+
+render();
+</script>
+</body>
+</html>

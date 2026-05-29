@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"/>
+<title>AP3X AnxietyCore — Patient PWA</title>
+<style>
+:root{
+  --bg:#f0f6ff;--surface:#fff;--surface2:#e8f0fe;--border:#c8d8f0;
+  --primary:#2563eb;--primary-d:#1d4ed8;--accent:#10b981;
+  --text:#1e293b;--muted:#64748b;--light:#94a3b8;
+  --low:#10b981;--medium:#f59e0b;--high:#ef4444;--critical:#7c3aed;
+  --r:12px;--rs:8px;--shadow:0 2px 8px rgba(37,99,235,.08);--t:.2s ease;
+}
+[data-theme=dark]{
+  --bg:#0b1220;--surface:#131f35;--surface2:#1e2d45;--border:#253450;
+  --text:#e2eafc;--muted:#8a9dc0;--light:#4a6080;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  background:var(--bg);color:var(--text);min-height:100dvh;max-width:480px;
+  margin:0 auto;padding-bottom:80px;font-size:15px;line-height:1.5}
+
+/* header */
+.ap3x-header{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--surface);border-bottom:1px solid var(--border);box-shadow:var(--shadow)}
+.header-brand{display:flex;align-items:center;gap:6px;font-weight:700}
+.brand-dot{width:10px;height:10px;border-radius:50%;background:var(--primary)}
+.brand-name{font-size:16px;color:var(--primary)}
+.brand-sub{font-size:12px;color:var(--muted);font-weight:400}
+.header-right{display:flex;align-items:center;gap:8px}
+.btn-icon{background:none;border:none;cursor:pointer;font-size:18px;padding:4px}
+.back-link{font-size:12px;color:var(--muted);text-decoration:none;padding:5px 10px;background:var(--surface2);border-radius:var(--rs);border:1px solid var(--border)}
+.back-link:hover{color:var(--primary)}
+
+/* streak */
+.streak-banner{display:flex;align-items:center;gap:8px;padding:10px 16px;background:linear-gradient(135deg,#10b981,#059669);color:#fff;font-weight:600;font-size:14px}
+.streak-fire{font-size:18px}
+
+/* bottom nav */
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;display:flex;background:var(--surface);border-top:1px solid var(--border);box-shadow:0 -2px 8px rgba(0,0,0,.08);z-index:100}
+.nav-tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 4px;background:none;border:none;color:var(--muted);font-size:10px;cursor:pointer;transition:color var(--t)}
+.nav-tab.active,.nav-tab:hover{color:var(--primary)}
+
+/* tab pages */
+.tab-page{padding:20px 16px;animation:fadeIn .2s ease}
+.tab-page.hidden{display:none!important}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.section-title{font-size:22px;font-weight:700;margin-bottom:4px}
+.section-sub{font-size:14px;color:var(--muted);margin-bottom:20px}
+
+/* scale */
+.scale-wrap{background:var(--surface);border-radius:var(--r);padding:20px 16px;margin-bottom:20px;box-shadow:var(--shadow)}
+.scale-labels{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:12px}
+.scale-track{display:flex;gap:4px}
+.scale-btn{flex:1;aspect-ratio:1;border-radius:var(--rs);border:2px solid transparent;font-size:13px;font-weight:600;cursor:pointer;transition:all var(--t)}
+.scale-btn:hover{transform:scale(1.08)}
+.scale-btn[data-v="0"],.scale-btn[data-v="1"]{background:#d1fae5;color:#065f46}
+.scale-btn[data-v="2"],.scale-btn[data-v="3"]{background:#d9f99d;color:#3f6212}
+.scale-btn[data-v="4"],.scale-btn[data-v="5"]{background:#fef9c3;color:#713f12}
+.scale-btn[data-v="6"],.scale-btn[data-v="7"]{background:#fed7aa;color:#7c2d12}
+.scale-btn[data-v="8"],.scale-btn[data-v="9"]{background:#fecaca;color:#7f1d1d}
+.scale-btn[data-v="10"]{background:#fca5a5;color:#7f1d1d}
+.scale-btn.selected{border-color:var(--primary);box-shadow:0 0 0 3px rgba(37,99,235,.25);transform:scale(1.12)}
+.score-display{text-align:center;margin-top:12px;font-size:32px;font-weight:800;color:var(--primary);min-height:40px}
+
+/* form */
+.form-block{margin-bottom:16px}
+.form-label{display:block;font-size:13px;font-weight:600;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em}
+.form-textarea{width:100%;background:var(--surface);border:1.5px solid var(--border);border-radius:var(--rs);padding:10px 12px;font-size:15px;color:var(--text);font-family:inherit;resize:vertical}
+.form-textarea:focus,.form-input:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(37,99,235,.12)}
+.form-input{width:100%;background:var(--surface);border:1.5px solid var(--border);border-radius:var(--rs);padding:10px 12px;font-size:15px;color:var(--text)}
+.tag-group{display:flex;flex-wrap:wrap;gap:8px}
+.tag{padding:5px 12px;border-radius:99px;border:1.5px solid var(--border);background:var(--surface);color:var(--muted);font-size:13px;cursor:pointer;transition:all var(--t)}
+.tag.active{background:var(--primary);border-color:var(--primary);color:#fff}
+.form-slider{width:100%;accent-color:var(--primary);margin-top:4px}
+
+/* buttons */
+.btn-primary{width:100%;padding:14px;background:var(--primary);color:#fff;border:none;border-radius:var(--r);font-size:16px;font-weight:700;cursor:pointer;transition:background var(--t),transform var(--t)}
+.btn-primary:hover{background:var(--primary-d)}
+.btn-primary:active{transform:scale(.98)}
+.btn-secondary{width:100%;padding:12px;background:var(--surface2);color:var(--text);border:1.5px solid var(--border);border-radius:var(--r);font-size:15px;font-weight:600;cursor:pointer;margin-top:8px}
+.btn-emergency{width:100%;padding:14px;background:none;border:2px solid var(--high);color:var(--high);border-radius:var(--r);font-size:15px;font-weight:700;cursor:pointer;margin-top:24px;transition:all var(--t)}
+.btn-emergency:hover{background:var(--high);color:#fff}
+
+/* feedback */
+.feedback-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);padding:16px;margin-top:16px;animation:fadeIn .3s ease}
+.risk-badge{display:inline-block;padding:4px 12px;border-radius:99px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px}
+.risk-badge.LOW{background:#d1fae5;color:#065f46}
+.risk-badge.MEDIUM{background:#fef3c7;color:#92400e}
+.risk-badge.HIGH{background:#fee2e2;color:#991b1b}
+.risk-badge.CRITICAL{background:#ede9fe;color:#4c1d95}
+.feedback-sugg{font-size:14px;color:var(--text);line-height:1.6}
+
+/* history */
+.chart-wrap{background:var(--surface);border-radius:var(--r);padding:16px;margin-bottom:16px;box-shadow:var(--shadow)}
+.history-list{display:flex;flex-direction:column;gap:8px}
+.history-item{background:var(--surface);border-radius:var(--rs);padding:12px 14px;display:flex;align-items:center;gap:12px;box-shadow:var(--shadow)}
+.h-score{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;flex-shrink:0}
+.h-meta{flex:1}
+.h-date{font-size:12px;color:var(--muted)}
+.h-note{font-size:13px;color:var(--text);margin-top:2px}
+
+/* exercises */
+.ex-cards{display:flex;flex-direction:column;gap:12px}
+.ex-card{background:var(--surface);border-radius:var(--r);padding:16px;display:flex;align-items:center;gap:14px;box-shadow:var(--shadow)}
+.ex-icon{font-size:28px;flex-shrink:0}
+.ex-info{flex:1}
+.ex-info h3{font-size:15px;font-weight:700}
+.ex-info p{font-size:13px;color:var(--muted);margin-top:2px}
+.btn-start-ex{padding:8px 16px;background:var(--surface2);border:1.5px solid var(--primary);color:var(--primary);border-radius:var(--rs);font-size:13px;font-weight:700;cursor:pointer;flex-shrink:0;transition:all var(--t)}
+.btn-start-ex:hover{background:var(--primary);color:#fff}
+.ex-runner{position:fixed;inset:0;background:rgba(11,18,32,.95);z-index:200;display:flex;align-items:center;justify-content:center}
+.ex-runner.hidden{display:none!important}
+.runner-inner{display:flex;flex-direction:column;align-items:center;gap:24px;padding:40px 24px;max-width:320px;width:100%}
+.breath-circle{width:80px;height:80px;border-radius:50%;background:radial-gradient(circle,#60a5fa 0%,#2563eb 60%,#1d4ed8 100%);box-shadow:0 0 32px rgba(96,165,250,.5);transition:transform 1s ease-in-out,box-shadow 1s ease-in-out}
+.breath-circle.inhale{transform:scale(1.8);box-shadow:0 0 48px rgba(96,165,250,.8)}
+.breath-circle.hold{transform:scale(1.8);box-shadow:0 0 64px rgba(96,165,250,.6)}
+.breath-circle.exhale{transform:scale(1);box-shadow:0 0 16px rgba(96,165,250,.2)}
+.runner-instr{font-size:28px;font-weight:700;color:#fff;text-align:center}
+.runner-step{font-size:14px;color:#8ab4f8;text-align:center}
+
+/* log */
+.log-section{background:var(--surface);border-radius:var(--r);padding:16px;margin-bottom:16px;box-shadow:var(--shadow)}
+.log-subtitle{font-size:15px;font-weight:700;margin-bottom:12px}
+.trigger-list{display:flex;flex-direction:column;gap:8px}
+.trigger-item{display:flex;align-items:center;gap:10px;padding:10px;background:var(--surface2);border-radius:var(--rs)}
+.t-sev{width:28px;height:28px;border-radius:50%;background:var(--primary);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.t-name{font-size:14px;font-weight:600}
+.t-date{font-size:12px;color:var(--muted)}
+
+/* modal */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:300;display:flex;align-items:center;justify-content:center;padding:24px}
+.modal.hidden{display:none!important}
+.modal-inner{background:var(--surface);border-radius:var(--r);padding:24px;max-width:360px;width:100%;text-align:center}
+.modal-inner h3{font-size:20px;font-weight:700;margin-bottom:12px}
+.modal-inner p{font-size:14px;color:var(--muted);margin-bottom:20px}
+.btn-emerg-large{display:block;padding:14px;background:var(--high);color:#fff;border-radius:var(--r);font-size:16px;font-weight:700;text-decoration:none;text-align:center;margin-bottom:10px}
+
+.ap3x-footer{padding:12px 16px 20px;font-size:11px;color:var(--light);text-align:center;line-height:1.4;border-top:1px solid var(--border);margin-top:16px}
+.hidden{display:none!important}
+.empty-state{text-align:center;color:var(--muted);font-size:14px;padding:20px 0}
+</style>
+</head>
+<body data-theme="light">
+
+<header class="ap3x-header">
+  <div class="header-brand">
+    <span class="brand-dot"></span>
+    <span class="brand-name">AP3X</span>
+    <span class="brand-sub">AnxietyCore</span>
+  </div>
+  <div class="header-right">
+    <a href="index.html" class="back-link">← Home</a>
+    <button class="btn-icon" id="theme-toggle">🌙</button>
+  </div>
+</header>
+
+<div id="streak-banner" class="streak-banner hidden">
+  <span class="streak-fire">🔥</span>
+  <span id="streak-text">0 day streak</span>
+</div>
+
+<nav class="bottom-nav">
+  <button class="nav-tab active" data-tab="checkin">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+    <span>Check-in</span>
+  </button>
+  <button class="nav-tab" data-tab="history">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+    <span>History</span>
+  </button>
+  <button class="nav-tab" data-tab="exercises">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/></svg>
+    <span>Exercises</span>
+  </button>
+  <button class="nav-tab" data-tab="log">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+    <span>Log</span>
+  </button>
+</nav>
+
+<!-- Check-in -->
+<main id="tab-checkin" class="tab-page">
+  <h2 class="section-title">How are you feeling?</h2>
+  <p class="section-sub">Rate your anxiety level right now</p>
+  <div class="scale-wrap">
+    <div class="scale-labels"><span>Calm</span><span>Moderate</span><span>High</span></div>
+    <div class="scale-track" id="scale-track"></div>
+    <div class="score-display" id="score-display">–</div>
+  </div>
+  <div class="form-block">
+    <label class="form-label">Mood note <span style="font-weight:400;text-transform:none">(optional)</span></label>
+    <textarea id="mood-input" class="form-textarea" placeholder="What's on your mind?" rows="3"></textarea>
+  </div>
+  <div class="form-block">
+    <label class="form-label">Tags</label>
+    <div class="tag-group" id="mood-tags">
+      <button class="tag" data-tag="work">work</button>
+      <button class="tag" data-tag="sleep">sleep</button>
+      <button class="tag" data-tag="social">social</button>
+      <button class="tag" data-tag="physical">physical</button>
+      <button class="tag" data-tag="family">family</button>
+      <button class="tag" data-tag="finances">finances</button>
+    </div>
+  </div>
+  <div class="form-block">
+    <label class="form-label">Sleep last night (hours)</label>
+    <input type="number" id="sleep-input" class="form-input" min="0" max="24" step="0.5" placeholder="e.g. 7"/>
+  </div>
+  <button class="btn-primary" id="submit-checkin">Submit Check-in</button>
+  <div id="feedback-card" class="feedback-card hidden">
+    <div id="feedback-badge" class="risk-badge"></div>
+    <p id="feedback-sugg" class="feedback-sugg"></p>
+  </div>
+  <button class="btn-emergency" id="emergency-btn">⚠️ I need help right now</button>
+</main>
+
+<!-- History -->
+<main id="tab-history" class="tab-page hidden">
+  <h2 class="section-title">Your History</h2>
+  <div class="chart-wrap"><canvas id="hist-chart" height="160"></canvas></div>
+  <div id="history-list" class="history-list"><p class="empty-state">No check-ins yet.</p></div>
+</main>
+
+<!-- Exercises -->
+<main id="tab-exercises" class="tab-page hidden">
+  <h2 class="section-title">Exercises</h2>
+  <p class="section-sub">Breathing and grounding techniques</p>
+  <div class="ex-cards">
+    <div class="ex-card" data-ex="478"><div class="ex-icon">🫁</div><div class="ex-info"><h3>4-7-8 Breathing</h3><p>Inhale 4s · Hold 7s · Exhale 8s</p></div><button class="btn-start-ex">Start</button></div>
+    <div class="ex-card" data-ex="box"><div class="ex-icon">📦</div><div class="ex-info"><h3>Box Breathing</h3><p>In 4s · Hold 4s · Out 4s · Hold 4s</p></div><button class="btn-start-ex">Start</button></div>
+    <div class="ex-card" data-ex="54321"><div class="ex-icon">🌿</div><div class="ex-info"><h3>5-4-3-2-1 Grounding</h3><p>Anchor yourself to the present</p></div><button class="btn-start-ex">Start</button></div>
+    <div class="ex-card" data-ex="recovery"><div class="ex-icon">🌙</div><div class="ex-info"><h3>Recovery Mode</h3><p>Gentle guided relaxation</p></div><button class="btn-start-ex">Start</button></div>
+  </div>
+  <div id="ex-runner" class="ex-runner hidden">
+    <div class="runner-inner">
+      <div style="width:160px;height:160px;display:flex;align-items:center;justify-content:center">
+        <div class="breath-circle" id="breath-circle"></div>
+      </div>
+      <div class="runner-instr" id="runner-instr">Get ready…</div>
+      <div class="runner-step" id="runner-step"></div>
+      <button class="btn-secondary" id="runner-stop" style="max-width:200px">End Exercise</button>
+    </div>
+  </div>
+</main>
+
+<!-- Log -->
+<main id="tab-log" class="tab-page hidden">
+  <h2 class="section-title">Log</h2>
+  <div class="log-section">
+    <h3 class="log-subtitle">Add a Trigger</h3>
+    <input id="trigger-name" class="form-input" placeholder="Trigger name (e.g. work deadline)" style="margin-bottom:10px"/>
+    <textarea id="trigger-desc" class="form-textarea" placeholder="Brief description (optional)" rows="2" style="margin-bottom:10px"></textarea>
+    <div style="margin-bottom:10px">
+      <label class="form-label">Severity: <span id="sev-val">5</span>/10</label>
+      <input type="range" id="trigger-sev" min="1" max="10" value="5" class="form-slider"/>
+    </div>
+    <button class="btn-primary" id="submit-trigger">Log Trigger</button>
+  </div>
+  <div class="log-section">
+    <h3 class="log-subtitle">Recent Triggers</h3>
+    <div id="trigger-list" class="trigger-list"><p class="empty-state">No triggers logged yet.</p></div>
+  </div>
+</main>
+
+<footer class="ap3x-footer">
+  AP3X AnxietyCore is a monitoring tool only. NOT a medical device. Does not provide medical diagnoses. All outputs are informational.
+</footer>
+
+<!-- Emergency modal -->
+<div id="emergency-modal" class="modal hidden">
+  <div class="modal-inner">
+    <h3>You are not alone</h3>
+    <p>If you are in immediate danger, please call emergency services.</p>
+    <a class="btn-emerg-large" href="tel:999">📞 Call for help</a>
+    <button class="btn-secondary" id="close-emergency">Close</button>
+  </div>
+</div>
+
+<script>
+// ── Persistent demo user ID (no login required) ───────────────
+const _userId = "demo_patient_user";
+
+// ── Data store ────────────────────────────────────────────────
+function getStore(k){try{return JSON.parse(localStorage.getItem("ap3x_"+_userId+"_"+k)||"[]")}catch{return[]}}
+function setStore(k,v){localStorage.setItem("ap3x_"+_userId+"_"+k,JSON.stringify(v))}
+
+function saveAnxiety(score,note,sleep){
+  const logs=getStore("anxiety");
+  logs.unshift({id:crypto.randomUUID(),anxiety_score:score,note,sleep_hours:sleep,created_at:new Date().toISOString()});
+  setStore("anxiety",logs.slice(0,500));
+  updateStreak();
+  return logs;
+}
+function saveTrigger(name,desc,sev){
+  const t=getStore("triggers");
+  t.unshift({id:crypto.randomUUID(),trigger_name:name,description:desc,severity:sev,created_at:new Date().toISOString()});
+  setStore("triggers",t.slice(0,200));
+}
+
+// ── Streak ────────────────────────────────────────────────────
+function updateStreak(){
+  const today=new Date().toISOString().slice(0,10);
+  const yesterday=new Date(Date.now()-86400000).toISOString().slice(0,10);
+  const s=JSON.parse(localStorage.getItem("ap3x_"+_userId+"_streak")||'{"current":0,"longest":0,"last":null}');
+  if(s.last===today) return s;
+  const newCur=s.last===yesterday?s.current+1:1;
+  const updated={current:newCur,longest:Math.max(newCur,s.longest),last:today};
+  localStorage.setItem("ap3x_"+_userId+"_streak",JSON.stringify(updated));
+  return updated;
+}
+function renderStreak(){
+  const s=JSON.parse(localStorage.getItem("ap3x_"+_userId+"_streak")||'{"current":0}');
+  if(s.current>0){
+    document.getElementById("streak-text").textContent=s.current+" day streak";
+    document.getElementById("streak-banner").classList.remove("hidden");
+  }
+}
+
+// ── Rules engine ──────────────────────────────────────────────
+function evalEntry(score,sleep){
+  const suggs=[],flags=[];let risk="LOW";
+  if(score>=8){risk="HIGH";flags.push("HIGH_SINGLE_SCORE");suggs.push("Try a breathing exercise now.")}
+  if(sleep!==null&&sleep<4&&score>6){risk="HIGH";flags.push("LOW_SLEEP_HIGH_ANXIETY");suggs.push("Low sleep + high anxiety detected. Consider rest today.")}
+  return{risk,suggs,flags};
+}
+function evalTrend(logs){
+  if(logs.length<3) return{risk:"LOW",suggs:[],flags:[]};
+  if(logs.slice(0,3).every(l=>l.anxiety_score>=6)){
+    return{risk:"MEDIUM",suggs:["Elevated anxiety for several days. Consider speaking with a clinician."],flags:["CONSECUTIVE_MEDIUM_SCORES"]};
+  }
+  return{risk:"LOW",suggs:[],flags:[]};
+}
+const RISK_ORD={LOW:0,MEDIUM:1,HIGH:2,CRITICAL:3};
+function topRisk(a,b){return RISK_ORD[a]>=RISK_ORD[b]?a:b}
+
+// ── Nav ───────────────────────────────────────────────────────
+document.querySelectorAll(".nav-tab").forEach(tab=>{
+  tab.addEventListener("click",()=>{
+    document.querySelectorAll(".nav-tab").forEach(t=>t.classList.remove("active"));
+    document.querySelectorAll(".tab-page").forEach(p=>p.classList.add("hidden"));
+    tab.classList.add("active");
+    document.getElementById("tab-"+tab.dataset.tab).classList.remove("hidden");
+    if(tab.dataset.tab==="history") renderHistory();
+    if(tab.dataset.tab==="log") renderTriggers();
+  });
+});
+
+// ── Scale ─────────────────────────────────────────────────────
+let _score=null;
+const track=document.getElementById("scale-track");
+const disp=document.getElementById("score-display");
+for(let i=0;i<=10;i++){
+  const btn=document.createElement("button");
+  btn.className="scale-btn";btn.dataset.v=String(i);btn.textContent=String(i);
+  btn.addEventListener("click",()=>{
+    _score=i;
+    track.querySelectorAll(".scale-btn").forEach(b=>b.classList.remove("selected"));
+    btn.classList.add("selected");disp.textContent=String(i);
+  });
+  track.appendChild(btn);
+}
+
+// ── Tags ──────────────────────────────────────────────────────
+document.querySelectorAll("#mood-tags .tag").forEach(t=>t.addEventListener("click",()=>t.classList.toggle("active")));
+
+// ── Check-in ──────────────────────────────────────────────────
+document.getElementById("submit-checkin").addEventListener("click",()=>{
+  if(_score===null){toast("Please select your anxiety level.");return}
+  const note=document.getElementById("mood-input").value.trim();
+  const sv=document.getElementById("sleep-input").value;
+  const sleep=sv!==""?parseFloat(sv):null;
+  const logs=saveAnxiety(_score,note,sleep);
+  const eR=evalEntry(_score,sleep);
+  const tR=evalTrend(logs);
+  const finalRisk=topRisk(eR.risk,tR.risk);
+  const suggs=[...eR.suggs,...tR.suggs];
+  const fc=document.getElementById("feedback-card");
+  const fb=document.getElementById("feedback-badge");
+  fb.className="risk-badge "+finalRisk;
+  fb.textContent=finalRisk==="LOW"?"You're doing well":finalRisk;
+  document.getElementById("feedback-sugg").textContent=suggs.join(" ")||"Keep going — check in again tomorrow!";
+  fc.classList.remove("hidden");
+  fc.scrollIntoView({behavior:"smooth",block:"nearest"});
+  _score=null;
+  disp.textContent="–";
+  track.querySelectorAll(".scale-btn").forEach(b=>b.classList.remove("selected"));
+  document.getElementById("mood-input").value="";
+  document.getElementById("sleep-input").value="";
+  document.querySelectorAll("#mood-tags .tag").forEach(t=>t.classList.remove("active"));
+  renderStreak();
+  document.getElementById("streak-banner").classList.remove("hidden");
+});
+
+// ── History ───────────────────────────────────────────────────
+function scoreBg(s){
+  if(s<=3)return{bg:"#d1fae5",c:"#065f46"};
+  if(s<=5)return{bg:"#fef9c3",c:"#713f12"};
+  if(s<=7)return{bg:"#fed7aa",c:"#7c2d12"};
+  return{bg:"#fecaca",c:"#7f1d1d"};
+}
+function renderHistory(){
+  const logs=getStore("anxiety");
+  const list=document.getElementById("history-list");
+  if(!logs.length){list.innerHTML='<p class="empty-state">No check-ins yet. Start your first!</p>';drawChart([]);return}
+  list.innerHTML=logs.slice(0,20).map(e=>{
+    const bg=scoreBg(e.anxiety_score);
+    return`<div class="history-item"><div class="h-score" style="background:${bg.bg};color:${bg.c}">${e.anxiety_score}</div><div class="h-meta"><div class="h-date">${fmtDate(e.created_at)}</div>${e.note?`<div class="h-note">${esc(e.note)}</div>`:""}</div></div>`;
+  }).join("");
+  drawChart(logs.slice(0,20).reverse().map(l=>l.anxiety_score));
+}
+function drawChart(data){
+  const canvas=document.getElementById("hist-chart");if(!canvas)return;
+  const ctx=canvas.getContext("2d");
+  const W=canvas.offsetWidth||340,H=160,dpr=window.devicePixelRatio||1;
+  canvas.width=W*dpr;canvas.height=H*dpr;ctx.scale(dpr,dpr);ctx.clearRect(0,0,W,H);
+  if(data.length<2){ctx.fillStyle="#94a3b8";ctx.font="13px system-ui";ctx.textAlign="center";ctx.fillText("Not enough data yet",W/2,H/2);return}
+  const P={t:12,r:12,b:28,l:28},pW=W-P.l-P.r,pH=H-P.t-P.b;
+  const xp=i=>P.l+(i/(data.length-1))*pW,yp=v=>P.t+(1-v/10)*pH;
+  ctx.strokeStyle="#e2e8f0";ctx.lineWidth=1;
+  [2,4,6,8,10].forEach(v=>{ctx.beginPath();ctx.moveTo(P.l,yp(v));ctx.lineTo(W-P.r,yp(v));ctx.stroke();ctx.fillStyle="#94a3b8";ctx.font="10px system-ui";ctx.textAlign="right";ctx.fillText(String(v),P.l-4,yp(v)+3)});
+  const g=ctx.createLinearGradient(0,P.t,0,H-P.b);
+  g.addColorStop(0,"rgba(239,68,68,0.3)");g.addColorStop(.5,"rgba(245,158,11,0.15)");g.addColorStop(1,"rgba(16,185,129,0.05)");
+  ctx.beginPath();data.forEach((v,i)=>i?ctx.lineTo(xp(i),yp(v)):ctx.moveTo(xp(i),yp(v)));
+  ctx.lineTo(xp(data.length-1),H-P.b);ctx.lineTo(xp(0),H-P.b);ctx.closePath();ctx.fillStyle=g;ctx.fill();
+  ctx.beginPath();ctx.lineWidth=2.5;ctx.strokeStyle="#2563eb";ctx.lineJoin="round";
+  data.forEach((v,i)=>i?ctx.lineTo(xp(i),yp(v)):ctx.moveTo(xp(i),yp(v)));ctx.stroke();
+  data.forEach((v,i)=>{const c=v>=8?"#ef4444":v>=6?"#f59e0b":"#10b981";ctx.beginPath();ctx.arc(xp(i),yp(v),4,0,Math.PI*2);ctx.fillStyle=c;ctx.fill();ctx.strokeStyle="#fff";ctx.lineWidth=1.5;ctx.stroke()});
+}
+
+// ── Exercises ─────────────────────────────────────────────────
+const EX={
+  "478":{steps:[{l:"Inhale",c:"inhale",d:4000},{l:"Hold",c:"hold",d:7000},{l:"Exhale",c:"exhale",d:8000}],cycles:4},
+  "box":{steps:[{l:"Inhale",c:"inhale",d:4000},{l:"Hold",c:"hold",d:4000},{l:"Exhale",c:"exhale",d:4000},{l:"Hold",c:"hold",d:4000}],cycles:4},
+  "54321":{steps:[{l:"Notice 5 things you can SEE",c:"inhale",d:6000},{l:"Notice 4 things you can TOUCH",c:"hold",d:6000},{l:"Notice 3 things you can HEAR",c:"exhale",d:6000},{l:"Notice 2 things you can SMELL",c:"inhale",d:6000},{l:"Notice 1 thing you can TASTE",c:"exhale",d:6000}],cycles:1},
+  "recovery":{steps:[{l:"Breathe in slowly…",c:"inhale",d:5000},{l:"Hold gently…",c:"hold",d:3000},{l:"Let it all go…",c:"exhale",d:7000},{l:"You are safe.",c:"hold",d:4000}],cycles:5}
+};
+let _exTimer=null;
+document.querySelectorAll(".btn-start-ex").forEach(btn=>{
+  btn.addEventListener("click",()=>startEx(btn.closest(".ex-card").dataset.ex));
+});
+document.getElementById("runner-stop").addEventListener("click",stopEx);
+function startEx(id){const ex=EX[id];if(!ex)return;document.getElementById("ex-runner").classList.remove("hidden");runCycle(ex,0,0)}
+function runCycle(ex,ci,si){
+  if(ci>=ex.cycles){document.getElementById("runner-instr").textContent="Well done 🌿";document.getElementById("runner-step").textContent="";_exTimer=setTimeout(stopEx,2000);return}
+  const step=ex.steps[si];
+  document.getElementById("breath-circle").className="breath-circle "+step.c;
+  document.getElementById("runner-instr").textContent=step.l;
+  document.getElementById("runner-step").textContent="Cycle "+(ci+1)+" of "+ex.cycles;
+  _exTimer=setTimeout(()=>{const ns=si+1;ns>=ex.steps.length?runCycle(ex,ci+1,0):runCycle(ex,ci,ns)},step.d);
+}
+function stopEx(){clearTimeout(_exTimer);document.getElementById("ex-runner").classList.add("hidden");document.getElementById("breath-circle").className="breath-circle"}
+
+// ── Triggers ──────────────────────────────────────────────────
+const sevSlider=document.getElementById("trigger-sev");
+sevSlider.addEventListener("input",()=>document.getElementById("sev-val").textContent=sevSlider.value);
+document.getElementById("submit-trigger").addEventListener("click",()=>{
+  const name=document.getElementById("trigger-name").value.trim();
+  if(!name){toast("Enter a trigger name.");return}
+  saveTrigger(name,document.getElementById("trigger-desc").value.trim(),parseInt(sevSlider.value));
+  document.getElementById("trigger-name").value="";
+  document.getElementById("trigger-desc").value="";
+  sevSlider.value="5";document.getElementById("sev-val").textContent="5";
+  renderTriggers();toast("Trigger logged ✓");
+});
+function renderTriggers(){
+  const list=document.getElementById("trigger-list");
+  const items=getStore("triggers");
+  if(!items.length){list.innerHTML='<p class="empty-state">No triggers logged yet.</p>';return}
+  list.innerHTML=items.slice(0,10).map(t=>`<div class="trigger-item"><div class="t-sev">${t.severity}</div><div><div class="t-name">${esc(t.trigger_name)}</div><div class="t-date">${fmtDate(t.created_at)}</div></div></div>`).join("");
+}
+
+// ── Emergency ─────────────────────────────────────────────────
+document.getElementById("emergency-btn").addEventListener("click",()=>document.getElementById("emergency-modal").classList.remove("hidden"));
+document.getElementById("close-emergency").addEventListener("click",()=>document.getElementById("emergency-modal").classList.add("hidden"));
+
+// ── Theme ─────────────────────────────────────────────────────
+const themeBtn=document.getElementById("theme-toggle");
+const savedTheme=localStorage.getItem("ap3x_theme")||"light";
+applyTheme(savedTheme);
+themeBtn.addEventListener("click",()=>{
+  const next=document.body.dataset.theme==="dark"?"light":"dark";
+  applyTheme(next);localStorage.setItem("ap3x_theme",next);
+});
+function applyTheme(t){document.body.dataset.theme=t;themeBtn.textContent=t==="dark"?"☀️":"🌙"}
+
+// ── Boot ──────────────────────────────────────────────────────
+renderStreak();
+renderTriggers();
+
+// ── Helpers ───────────────────────────────────────────────────
+function toast(msg){const t=document.createElement("div");t.style.cssText="position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#1e293b;color:#fff;padding:10px 18px;border-radius:8px;font-size:14px;z-index:500;";t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),2500)}
+function fmtDate(iso){return new Date(iso).toLocaleDateString(undefined,{month:"short",day:"numeric",hour:"2-digit",minute:"2-digit"})}
+function esc(s){return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}
+</script>
+</body>
+</html>
