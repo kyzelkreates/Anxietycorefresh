@@ -1,4 +1,4 @@
-# AP3X AnxietyCore — Supabase Setup Guide
+# AP3X Intelligent AI — Supabase Setup Guide
 
 ## 1. Create a Supabase project
 

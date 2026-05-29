@@ -1,4 +1,4 @@
-# AP3X AnxietyCore Clinical System
+# AP3X Intelligent AI Clinical System
 
 > Built on top of BCO Core — extends without rewriting.
 
@@ -6,11 +6,11 @@
 
 ## What This Is
 
-AP3X AnxietyCore is a dual-system clinical monitoring platform that extends BCO Core with:
+AP3X Intelligent AI is a dual-system clinical monitoring platform that extends BCO Core with:
 
 1. **Patient PWA** — mobile-first daily check-in app with offline support
 2. **Clinician Dashboard** — real-time patient monitoring and risk management
-3. **AnxietyCore Rules Engine** — lightweight rule evaluator integrated into BCO's event/action pipeline
+3. **AP3X Intelligent AI Rules Engine** — lightweight rule evaluator integrated into BCO's event/action pipeline
 4. **Supabase backend** — shared data layer with Row Level Security
 
 ---
@@ -58,7 +58,7 @@ BCO Core (unchanged)
 | Single Source of Truth | All local state via `storage.js` + `AP3X_KEYS` prefix. No duplicate stores. |
 | Event-First | Every patient write calls `emitEvent()` → BCO rule engine → storage |
 | Storage Abstraction | All writes via BCO `storage.update()` — never `localStorage` directly |
-| Module Isolation | AnxietyCore registered as a BCO module via `anxietyCoreModule` manifest |
+| Module Isolation | AP3X Intelligent AI registered as a BCO module via `anxietyCoreModule` manifest |
 | AI Non-Destructive | Risk engine is pure-function — suggests only, never mutates |
 | Rule Engine Authority | BCO rules evaluate every `AP3X_LOG_*` event |
 | UI Read-Only | Both UIs dispatch events or call service functions only |
@@ -66,7 +66,7 @@ BCO Core (unchanged)
 
 ---
 
-## AnxietyCore Rules (Implemented)
+## AP3X Intelligent AI Rules (Implemented)
 
 | Rule | Trigger | Risk Output |
 |------|---------|-------------|
@@ -167,4 +167,4 @@ moduleRegistry.register(anxietyCoreModule);
 
 ---
 
-*AP3X AnxietyCore — built on BCO Core by Kyzel Kreates*
+*AP3X Intelligent AI — built on BCO Core by Kyzel Kreates*

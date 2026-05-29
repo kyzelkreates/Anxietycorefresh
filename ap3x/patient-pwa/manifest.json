@@ -1,7 +1,7 @@
 {
-  "name": "AP3X AnxietyCore",
-  "short_name": "AnxietyCore",
-  "description": "Daily mental wellness check-in — AP3X AnxietyCore module",
+  "name": "AP3X Intelligent AI",
+  "short_name": "AP3X Intelligent AI",
+  "description": "Daily mental wellness check-in — AP3X Intelligent AI module",
   "start_url": "/ap3x/patient-pwa/index.html",
   "display": "standalone",
   "orientation": "portrait-primary",
