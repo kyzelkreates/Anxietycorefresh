@@ -611,6 +611,33 @@ canvas{width:100%!important;display:block}
 <!-- Toast -->
 <div class="toast hidden" id="toast"></div>
 
+
+<!-- Add Goal Modal -->
+<div class="modal hidden" id="addGoalModal">
+  <div class="modal-inner">
+    <div class="modal-handle"></div>
+    <h3>🎯 Add a Goal</h3>
+    <p>What habit do you want to build?</p>
+    <div style="text-align:left;margin-bottom:12px">
+      <label class="form-label" style="display:block;margin-bottom:6px">Goal Name</label>
+      <input id="newGoalName" type="text" placeholder="e.g. Meditate for 10 minutes" style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--rs);background:var(--surface2);color:var(--text);font-size:14px;font-family:inherit"/>
+    </div>
+    <div style="text-align:left;margin-bottom:20px">
+      <label class="form-label" style="display:block;margin-bottom:6px">Category</label>
+      <select id="newGoalCat" style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--rs);background:var(--surface2);color:var(--text);font-size:14px">
+        <option>Mindfulness</option>
+        <option>Exercise</option>
+        <option>Sleep</option>
+        <option>Social</option>
+        <option>Self-Care</option>
+        <option>Other</option>
+      </select>
+    </div>
+    <button class="btn-primary" onclick="saveNewGoal()">Add Goal</button>
+    <button class="btn-secondary" style="margin-top:8px" onclick="closeGoalModal()">Cancel</button>
+  </div>
+</div>
+
 <footer class="ap3x-footer">AP3X AnxietyCore v1.0 · Demo Mode · Data stays in your browser</footer>
 
 <script>
@@ -618,9 +645,10 @@ canvas{width:100%!important;display:block}
 const S = {
   checkinStep: 0,
   anxiety: null, sleep: null,
-  physicalTags: [], triggerTags: [], copingTags: [],
   currentMood: null,
   xp: 420, streak: 5,
+  currentExFilter: 'all',
+  activeExerciseId: null,
   exercisesCompleted: JSON.parse(localStorage.getItem('ex_done')||'[]'),
   journalEntries: JSON.parse(localStorage.getItem('journal')||'[]'),
   goals: JSON.parse(localStorage.getItem('goals')||'null') || defaultGoals(),
@@ -629,17 +657,17 @@ const S = {
 
 function defaultGoals(){
   return [
-    {id:1,name:'Daily Meditation',cat:'Mindfulness',target:7,days:[1,1,1,0,1,1,0],progress:5},
-    {id:2,name:'Morning Walk',cat:'Exercise',target:5,days:[1,1,0,1,1,0,0],progress:4},
-    {id:3,name:'No Phone Before Bed',cat:'Sleep',target:7,days:[0,1,1,1,0,1,1],progress:5},
+    {id:1,name:'Daily Meditation',cat:'Mindfulness',target:7,days:[1,1,1,0,1,1,0]},
+    {id:2,name:'Morning Walk',cat:'Exercise',target:5,days:[1,1,0,1,1,0,0]},
+    {id:3,name:'No Phone Before Bed',cat:'Sleep',target:7,days:[0,1,1,1,0,1,1]},
   ];
 }
 function defaultCheckins(){
   const now=Date.now(); const day=86400000;
   return [
-    {date:now-day*0,anxiety:3,sleep:7,note:'Feeling more calm today',triggers:['Work/School'],coping:['Deep breathing'],risk:'LOW'},
-    {date:now-day*1,anxiety:6,sleep:5,note:'Busy day, work stress',triggers:['Work/School','Social'],coping:['Music'],risk:'MEDIUM'},
-    {date:now-day*2,anxiety:4,sleep:6,note:'',triggers:['Finances'],coping:['Exercise'],risk:'MEDIUM'},
+    {date:now,anxiety:3,sleep:7,note:'Feeling more calm today',triggers:['Work/School'],coping:['Deep breathing'],risk:'LOW'},
+    {date:now-day,anxiety:6,sleep:5,note:'Busy day, work stress',triggers:['Work/School','Social'],coping:['Music'],risk:'MEDIUM'},
+    {date:now-day*2,anxiety:4,sleep:6,note:'Managed okay',triggers:['Finances'],coping:['Exercise'],risk:'MEDIUM'},
     {date:now-day*3,anxiety:8,sleep:4,note:'Bad night, panic episode',triggers:['Poor Sleep','Health'],coping:['Deep breathing'],risk:'HIGH'},
     {date:now-day*4,anxiety:2,sleep:8,note:'Great day!',triggers:[],coping:['Meditation','Exercise'],risk:'LOW'},
     {date:now-day*5,anxiety:5,sleep:6,note:'Average',triggers:['Work/School'],coping:['Talking to someone'],risk:'MEDIUM'},
@@ -649,350 +677,450 @@ function defaultCheckins(){
 
 // ── Greeting ──────────────────────────────────────────
 function setGreeting(){
-  const h=new Date().getHours();
-  const g=h<12?'Good morning':'h<17?'Good afternoon':'Good evening';
-  document.getElementById('greetingText').textContent=`${g}, Jordan 👋`;
+  const h = new Date().getHours();
+  const g = h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
+  document.getElementById('greetingText').textContent = g + ', Jordan 👋';
 }
 setGreeting();
 
 // ── Theme ─────────────────────────────────────────────
-let dark=localStorage.getItem('theme')==='dark';
+let dark = localStorage.getItem('theme') === 'dark';
 function applyTheme(){
-  document.documentElement.setAttribute('data-theme',dark?'dark':'');
-  document.getElementById('themeToggle').textContent=dark?'☀️':'🌙';
+  document.documentElement.setAttribute('data-theme', dark ? 'dark' : '');
+  document.getElementById('themeToggle').textContent = dark ? '☀️' : '🌙';
 }
 applyTheme();
-document.getElementById('themeToggle').onclick=()=>{dark=!dark;localStorage.setItem('theme',dark?'dark':'');applyTheme()};
+document.getElementById('themeToggle').onclick = function(){
+  dark = !dark;
+  localStorage.setItem('theme', dark ? 'dark' : '');
+  applyTheme();
+};
 
 // ── Tab nav ───────────────────────────────────────────
 function goTab(t){
-  document.querySelectorAll('.tab-page').forEach(p=>p.classList.add('hidden'));
-  document.querySelectorAll('.nav-tab').forEach(b=>b.classList.remove('active'));
-  document.getElementById('tab-'+t).classList.remove('hidden');
-  const nb=document.getElementById('nav-'+t);
-  if(nb)nb.classList.add('active');
-  if(t==='history')renderHistory();
-  if(t==='goals')renderGoals();
-  if(t==='journal')renderJournal();
-  if(t==='exercises')renderExercises();
+  document.querySelectorAll('.tab-page').forEach(function(p){ p.classList.add('hidden'); });
+  document.querySelectorAll('.nav-tab').forEach(function(b){ b.classList.remove('active'); });
+  var page = document.getElementById('tab-'+t);
+  if(page) page.classList.remove('hidden');
+  var nb = document.getElementById('nav-'+t);
+  if(nb) nb.classList.add('active');
+  if(t === 'history'){ renderHistory(); setTimeout(function(){ renderHistChart('anxiety'); }, 80); }
+  if(t === 'goals') renderGoals();
+  if(t === 'journal') renderJournal();
+  if(t === 'exercises') renderExercises();
+  if(t === 'home') setTimeout(function(){ renderMiniChart('anxiety'); }, 80);
+  window.scrollTo(0,0);
 }
 
 // ── Mood ──────────────────────────────────────────────
 function selectMood(v){
-  S.currentMood=v;
-  document.querySelectorAll('.mood-btn').forEach(b=>b.classList.remove('selected'));
-  document.querySelector(`.mood-btn[data-mood="${v}"]`).classList.add('selected');
-  const labels=['','Feeling anxious 😰','Feeling low 😔','Feeling neutral 😐','Feeling good 🙂','Feeling great 😊'];
-  showToast(labels[v]);
+  S.currentMood = v;
+  document.querySelectorAll('.mood-btn').forEach(function(b){ b.classList.remove('selected'); });
+  var btn = document.querySelector('.mood-btn[data-mood="'+v+'"]');
+  if(btn) btn.classList.add('selected');
+  var labels = ['','Feeling anxious 😰','Feeling low 😔','Feeling neutral 😐','Feeling good 🙂','Feeling great 😊'];
+  showToast(labels[v] || '');
 }
 
 // ── Scale builders ────────────────────────────────────
-function buildScale(containerId, valueId, labelId, max=10){
-  const c=document.getElementById(containerId);
-  c.innerHTML='';
-  for(let i=0;i<=max;i++){
-    const b=document.createElement('button');
-    b.className='scale-btn'; b.textContent=i; b.dataset.v=i;
-    b.onclick=()=>{
-      c.querySelectorAll('.scale-btn').forEach(x=>x.classList.remove('selected'));
-      b.classList.add('selected');
-      const vEl=document.getElementById(valueId);
-      if(vEl)vEl.textContent=i;
-      if(valueId==='anxietyVal'){
-        S.anxiety=i;
-        const lbl=document.getElementById('anxietyLabel');
-        if(lbl)lbl.textContent=i<=2?'✅ Minimal':i<=4?'🟡 Mild':i<=6?'🟠 Moderate':i<=8?'🔴 High':'🔴 Severe';
-      }
-      if(valueId==='sleepVal') S.sleep=i;
-    };
-    c.appendChild(b);
+function buildScale(containerId, valueId, stateKey, max){
+  max = max || 10;
+  var c = document.getElementById(containerId);
+  if(!c) return;
+  c.innerHTML = '';
+  for(var i = 0; i <= max; i++){
+    (function(val){
+      var b = document.createElement('button');
+      b.className = 'scale-btn';
+      b.textContent = val;
+      b.setAttribute('data-v', val);
+      b.onclick = function(){
+        c.querySelectorAll('.scale-btn').forEach(function(x){ x.classList.remove('selected'); });
+        b.classList.add('selected');
+        var vEl = document.getElementById(valueId);
+        if(vEl) vEl.textContent = val;
+        if(stateKey === 'anxiety'){
+          S.anxiety = val;
+          var lbl = document.getElementById('anxietyLabel');
+          if(lbl) lbl.textContent = val<=2 ? '✅ Minimal' : val<=4 ? '🟡 Mild' : val<=6 ? '🟠 Moderate' : val<=8 ? '🔴 High' : '🔴 Severe';
+        }
+        if(stateKey === 'sleep') S.sleep = val;
+      };
+      c.appendChild(b);
+    })(i);
   }
 }
-buildScale('anxietyScale','anxietyVal','anxietyLabel',10);
-buildScale('sleepScale','sleepVal','sleepValLabel',10);
+buildScale('anxietyScale','anxietyVal','anxiety',10);
+buildScale('sleepScale','sleepVal','sleep',10);
 
-// ── Tags ──────────────────────────────────────────────
-function toggleTag(el){el.classList.toggle('active')}
-function toggleChip(el){el.classList.toggle('active')}
+// ── Tags / chips ──────────────────────────────────────
+function toggleTag(el){ el.classList.toggle('active'); }
+function toggleChip(el){ el.classList.toggle('active'); }
 
-// ── Checkin steps ─────────────────────────────────────
+// ── Check-in steps ────────────────────────────────────
 function nextStep(n){
   document.getElementById('step-'+S.checkinStep).classList.add('hidden');
-  S.checkinStep=n;
+  S.checkinStep = n;
   document.getElementById('step-'+n).classList.remove('hidden');
-  const pct=Math.round((n/4)*100);
-  document.getElementById('checkinBar').style.width=Math.max(pct,10)+'%';
-  for(let i=0;i<5;i++){
-    const d=document.getElementById('sd'+i);
-    d.classList.toggle('active',i===n);
-    d.classList.toggle('done',i<n);
+  var pct = Math.round((n/4)*100);
+  document.getElementById('checkinBar').style.width = Math.max(pct,10)+'%';
+  for(var i=0;i<5;i++){
+    var d = document.getElementById('sd'+i);
+    if(d){
+      d.classList.toggle('active', i===n);
+      d.classList.toggle('done', i<n);
+    }
   }
-  if(n===4) submitCheckin();
-}
-function startNewCheckin(){
-  S.checkinStep=0; S.anxiety=null; S.sleep=null;
-  document.querySelectorAll('.checkin-step').forEach(s=>s.classList.add('hidden'));
-  document.getElementById('step-0').classList.remove('hidden');
-  document.getElementById('checkinBar').style.width='10%';
-}
-function submitCheckin(){
-  const anxiety=S.anxiety??5;
-  const risk=anxiety<=3?'LOW':anxiety<=6?'MEDIUM':anxiety<=8?'HIGH':'CRITICAL';
-  const msgs={
-    LOW:'Great job checking in! Your anxiety is low today. Keep up with your coping strategies — they\'re working.',
-    MEDIUM:'You\'re managing. Your anxiety is moderate — consider a breathing exercise or short walk to help reset.',
-    HIGH:'Your anxiety is elevated. Please try the 4-7-8 breathing exercise and reach out to your support network.',
-    CRITICAL:'Your anxiety is very high right now. Your clinician has been flagged. Please use the emergency resources if needed.'
-  };
-  const tips={
-    LOW:'💡 Tip: Even on good days, 5 minutes of mindfulness helps maintain your baseline.',
-    MEDIUM:'💡 Tip: Progressive muscle relaxation can quickly reduce physical tension.',
-    HIGH:'💡 Tip: Box breathing (4-4-4-4) is proven to activate the parasympathetic nervous system.',
-    CRITICAL:'💡 Tip: Grounding techniques — name 5 things you can see right now.'
-  };
-  document.getElementById('riskBadge').textContent=risk;
-  document.getElementById('riskBadge').className='risk-badge '+risk;
-  document.getElementById('feedbackText').textContent=msgs[risk];
-  document.getElementById('feedbackTip').textContent=tips[risk];
-  const fc=document.getElementById('feedbackCard');
-  fc.className='feedback-card'+(risk==='HIGH'?' risk-high':risk==='CRITICAL'?' risk-critical':'');
-  // Save
-  S.checkins.unshift({date:Date.now(),anxiety,sleep:S.sleep??6,note:document.getElementById('checkinNote').value,triggers:[],coping:[],risk});
-  localStorage.setItem('checkins',JSON.stringify(S.checkins));
-  S.xp+=50; S.streak+=0;
-  document.getElementById('xpText').textContent=`⚡ ${S.xp} XP`;
-  document.getElementById('checkinDot').style.display='none';
-  showToast('✅ Check-in saved! +50 XP');
-  renderMiniChart('anxiety');
+  if(n === 4) submitCheckin();
 }
 
-// ── Mini chart ────────────────────────────────────────
-let miniChartInstance=null;
-function renderMiniChart(type){
-  const c=document.getElementById('miniChart');
-  const data=S.checkins.slice(0,7).reverse().map(ci=>type==='anxiety'?ci.anxiety:type==='sleep'?ci.sleep:ci.anxiety);
-  const labels=S.checkins.slice(0,7).reverse().map(ci=>{const d=new Date(ci.date);return['Su','Mo','Tu','We','Th','Fr','Sa'][d.getDay()]});
-  drawLineChart(c,labels,data,type==='sleep'?'#10b981':'#2563eb',type==='sleep'?'rgba(16,185,129,.15)':'rgba(37,99,235,.15)');
+function startNewCheckin(){
+  S.checkinStep = 0; S.anxiety = null; S.sleep = null;
+  document.querySelectorAll('.checkin-step').forEach(function(s){ s.classList.add('hidden'); });
+  document.getElementById('step-0').classList.remove('hidden');
+  document.getElementById('checkinBar').style.width = '10%';
+  // Reset dots
+  for(var i=0;i<5;i++){
+    var d = document.getElementById('sd'+i);
+    if(d){ d.classList.toggle('active',i===0); d.classList.remove('done'); }
+  }
+  // Reset scales
+  buildScale('anxietyScale','anxietyVal','anxiety',10);
+  buildScale('sleepScale','sleepVal','sleep',10);
+  document.getElementById('anxietyVal').textContent = '—';
+  document.getElementById('anxietyLabel').textContent = '';
+  document.getElementById('sleepVal').textContent = '—';
+  // Reset tags
+  document.querySelectorAll('#physicalTags .tag, #copingTags .tag, .trigger-chip').forEach(function(t){ t.classList.remove('active'); });
+  var note = document.getElementById('checkinNote');
+  if(note) note.value = '';
 }
-function switchMiniChart(type,btn){
-  document.querySelectorAll('#tab-home .chart-tab').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
+
+function submitCheckin(){
+  var anxiety = S.anxiety !== null ? S.anxiety : 5;
+  var risk = anxiety<=3 ? 'LOW' : anxiety<=6 ? 'MEDIUM' : anxiety<=8 ? 'HIGH' : 'CRITICAL';
+  var msgs = {
+    LOW: 'Great job checking in! Your anxiety is low today. Keep up with your coping strategies — they\'re working.',
+    MEDIUM: 'You\'re managing. Your anxiety is moderate — consider a breathing exercise or short walk to help reset.',
+    HIGH: 'Your anxiety is elevated. Please try the 4-7-8 breathing exercise and reach out to your support network.',
+    CRITICAL: 'Your anxiety is very high right now. Your clinician has been flagged. Please use the emergency resources if needed.'
+  };
+  var tips = {
+    LOW: '💡 Tip: Even on good days, 5 minutes of mindfulness helps maintain your baseline.',
+    MEDIUM: '💡 Tip: Progressive muscle relaxation can quickly reduce physical tension.',
+    HIGH: '💡 Tip: Box breathing (4-4-4-4) is proven to activate the parasympathetic nervous system.',
+    CRITICAL: '💡 Tip: Grounding — name 5 things you can see right now.'
+  };
+  // Collect triggers from chips
+  var triggers = [];
+  document.querySelectorAll('.trigger-chip.active .tc-name').forEach(function(el){ triggers.push(el.textContent); });
+  var coping = [];
+  document.querySelectorAll('#copingTags .tag.active').forEach(function(el){ coping.push(el.textContent); });
+
+  var badge = document.getElementById('riskBadge');
+  badge.textContent = risk;
+  badge.className = 'risk-badge ' + risk;
+  document.getElementById('feedbackText').textContent = msgs[risk];
+  document.getElementById('feedbackTip').textContent = tips[risk];
+  var fc = document.getElementById('feedbackCard');
+  fc.className = 'feedback-card' + (risk==='HIGH' ? ' risk-high' : risk==='CRITICAL' ? ' risk-critical' : '');
+
+  var noteVal = document.getElementById('checkinNote') ? document.getElementById('checkinNote').value : '';
+  S.checkins.unshift({
+    date: Date.now(),
+    anxiety: anxiety,
+    sleep: S.sleep !== null ? S.sleep : 6,
+    note: noteVal,
+    triggers: triggers,
+    coping: coping,
+    risk: risk
+  });
+  localStorage.setItem('checkins', JSON.stringify(S.checkins));
+  S.xp += 50;
+  S.streak += 1;
+  document.getElementById('xpText').textContent = '⚡ '+S.xp+' XP';
+  document.getElementById('streakText').textContent = S.streak+'-day streak — keep it up!';
+  var dot = document.getElementById('checkinDot');
+  if(dot) dot.style.display = 'none';
+  showToast('✅ Check-in saved! +50 XP');
+  setTimeout(function(){ renderMiniChart('anxiety'); }, 100);
+}
+
+// ── Mini chart (home) ─────────────────────────────────
+var currentMiniChartType = 'anxiety';
+function renderMiniChart(type){
+  currentMiniChartType = type;
+  var c = document.getElementById('miniChart');
+  if(!c) return;
+  var slice = S.checkins.slice(0,7).reverse();
+  var data = slice.map(function(ci){ return type==='sleep' ? ci.sleep : ci.anxiety; });
+  var labels = slice.map(function(ci){ var d=new Date(ci.date); return ['Su','Mo','Tu','We','Th','Fr','Sa'][d.getDay()]; });
+  drawLineChart(c, labels, data, type==='sleep'?'#10b981':'#2563eb', type==='sleep'?'rgba(16,185,129,.15)':'rgba(37,99,235,.15)');
+}
+
+function switchMiniChart(type, btn){
+  document.querySelectorAll('#tab-home .chart-tab').forEach(function(b){ b.classList.remove('active'); });
+  if(btn) btn.classList.add('active');
   renderMiniChart(type);
 }
-renderMiniChart('anxiety');
 
-let histChartInstance=null;
+// ── History chart ─────────────────────────────────────
+var currentHistChartType = 'anxiety';
 function renderHistChart(type){
-  const c=document.getElementById('histChart');
-  const data=S.checkins.slice(0,14).reverse().map(ci=>type==='anxiety'?ci.anxiety:ci.sleep);
-  const labels=S.checkins.slice(0,14).reverse().map(ci=>{const d=new Date(ci.date);return`${d.getDate()}/${d.getMonth()+1}`});
-  drawLineChart(c,labels,data,type==='sleep'?'#10b981':'#2563eb',type==='sleep'?'rgba(16,185,129,.15)':'rgba(37,99,235,.15)');
+  currentHistChartType = type;
+  var c = document.getElementById('histChart');
+  if(!c) return;
+  var slice = S.checkins.slice(0,14).reverse();
+  var data = slice.map(function(ci){ return type==='sleep' ? ci.sleep : ci.anxiety; });
+  var labels = slice.map(function(ci){ var d=new Date(ci.date); return (d.getDate())+'/'+(d.getMonth()+1); });
+  drawLineChart(c, labels, data, type==='sleep'?'#10b981':'#2563eb', type==='sleep'?'rgba(16,185,129,.15)':'rgba(37,99,235,.15)');
 }
-function switchHistChart(type,btn){
-  document.querySelectorAll('#tab-history .chart-tab').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
+
+function switchHistChart(type, btn){
+  document.querySelectorAll('#tab-history .chart-tab').forEach(function(b){ b.classList.remove('active'); });
+  if(btn) btn.classList.add('active');
   renderHistChart(type);
 }
 
-function drawLineChart(canvas,labels,data,color,fill){
-  const W=canvas.offsetWidth||340,H=parseInt(canvas.getAttribute('height'))||100;
-  canvas.width=W; canvas.height=H;
-  const ctx=canvas.getContext('2d');
+// ── Line chart ────────────────────────────────────────
+function drawLineChart(canvas, labels, data, color, fill){
+  if(!canvas || !data.length) return;
+  var W = canvas.offsetWidth || 340;
+  var H = parseInt(canvas.getAttribute('height')) || 100;
+  canvas.width = W; canvas.height = H;
+  var ctx = canvas.getContext('2d');
   ctx.clearRect(0,0,W,H);
-  const pad=14,max=Math.max(...data,10),min=0;
-  const xStep=(W-pad*2)/(data.length-1||1);
-  const yScale=(H-pad*2)/(max-min||1);
-  // grid
-  ctx.strokeStyle='rgba(148,163,184,.15)';ctx.lineWidth=1;
-  for(let g=0;g<=2;g++){
-    const y=pad+g*(H-pad*2)/2;
-    ctx.beginPath();ctx.moveTo(pad,y);ctx.lineTo(W-pad,y);ctx.stroke();
+  var pad=14, max=Math.max.apply(null,data.concat([10])), min=0;
+  var xStep = (W-pad*2) / (data.length-1||1);
+  var yScale = (H-pad*2) / (max-min||1);
+  ctx.strokeStyle = 'rgba(148,163,184,.15)'; ctx.lineWidth=1;
+  for(var g=0;g<=2;g++){
+    var gy = pad+g*(H-pad*2)/2;
+    ctx.beginPath(); ctx.moveTo(pad,gy); ctx.lineTo(W-pad,gy); ctx.stroke();
   }
-  // fill
   ctx.beginPath();
-  data.forEach((v,i)=>{const x=pad+i*xStep,y=H-pad-(v-min)*yScale;i===0?ctx.moveTo(x,y):ctx.lineTo(x,y)});
-  ctx.lineTo(pad+(data.length-1)*xStep,H-pad);ctx.lineTo(pad,H-pad);ctx.closePath();
-  ctx.fillStyle=fill;ctx.fill();
-  // line
-  ctx.beginPath();ctx.strokeStyle=color;ctx.lineWidth=2.5;ctx.lineJoin='round';
-  data.forEach((v,i)=>{const x=pad+i*xStep,y=H-pad-(v-min)*yScale;i===0?ctx.moveTo(x,y):ctx.lineTo(x,y)});
+  data.forEach(function(v,i){ var x=pad+i*xStep, y=H-pad-(v-min)*yScale; i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); });
+  ctx.lineTo(pad+(data.length-1)*xStep, H-pad); ctx.lineTo(pad,H-pad); ctx.closePath();
+  ctx.fillStyle = fill; ctx.fill();
+  ctx.beginPath(); ctx.strokeStyle=color; ctx.lineWidth=2.5; ctx.lineJoin='round';
+  data.forEach(function(v,i){ var x=pad+i*xStep, y=H-pad-(v-min)*yScale; i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); });
   ctx.stroke();
-  // dots
-  data.forEach((v,i)=>{
-    const x=pad+i*xStep,y=H-pad-(v-min)*yScale;
-    ctx.beginPath();ctx.arc(x,y,3.5,0,Math.PI*2);
-    ctx.fillStyle=color;ctx.fill();
-    ctx.fillStyle=dark?'#131f35':'#fff';ctx.beginPath();ctx.arc(x,y,1.8,0,Math.PI*2);ctx.fill();
+  data.forEach(function(v,i){
+    var x=pad+i*xStep, y=H-pad-(v-min)*yScale;
+    ctx.beginPath(); ctx.arc(x,y,3.5,0,Math.PI*2); ctx.fillStyle=color; ctx.fill();
+    ctx.fillStyle = dark?'#131f35':'#fff';
+    ctx.beginPath(); ctx.arc(x,y,1.8,0,Math.PI*2); ctx.fill();
   });
-  // labels
-  ctx.fillStyle='#94a3b8';ctx.font='10px sans-serif';ctx.textAlign='center';
-  labels.forEach((l,i)=>{ctx.fillText(l,pad+i*xStep,H-1)});
+  ctx.fillStyle='#94a3b8'; ctx.font='10px sans-serif'; ctx.textAlign='center';
+  labels.forEach(function(l,i){ ctx.fillText(l, pad+i*xStep, H-1); });
 }
 
-// ── History ───────────────────────────────────────────
+// ── History tab ───────────────────────────────────────
 function renderHistory(){
-  renderHistChart('anxiety');
-  const avg=(S.checkins.reduce((a,c)=>a+c.anxiety,0)/S.checkins.length).toFixed(1);
-  document.getElementById('avgScore').textContent=avg;
-  document.getElementById('totalCheckins').textContent=S.checkins.length;
-  const recent=S.checkins.slice(0,7).reduce((a,c)=>a+c.anxiety,0)/7;
-  const older=S.checkins.slice(7,14).reduce((a,c)=>a+c.anxiety,0)/7||recent;
-  const chg=Math.round((recent-older)/older*100);
-  document.getElementById('improvePct').textContent=(chg<=0?'↓'+Math.abs(chg):'↑'+chg)+'%';
-  const colors={LOW:'#d1fae5',MEDIUM:'#fef3c7',HIGH:'#fee2e2',CRITICAL:'#ede9fe'};
-  const tc={LOW:'#065f46',MEDIUM:'#92400e',HIGH:'#991b1b',CRITICAL:'#4c1d95'};
-  document.getElementById('historyList').innerHTML=S.checkins.map(ci=>{
-    const d=new Date(ci.date);
-    const sc=ci.anxiety;
-    const bg=sc<=3?'#d1fae5':sc<=6?'#fef3c7':'#fee2e2';
-    const col=sc<=3?'#065f46':sc<=6?'#92400e':'#991b1b';
-    return `<div class="history-item">
-      <div class="h-score" style="background:${bg};color:${col}">${sc}</div>
-      <div class="h-meta">
-        <div class="h-date">${d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'})} · ${d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}</div>
-        <div class="h-note">${ci.note||'No notes'}</div>
-        <div class="h-tags">${(ci.triggers||[]).map(t=>`<span class="h-tag">${t}</span>`).join('')}<span class="h-tag" style="background:${colors[ci.risk]};color:${tc[ci.risk]}">${ci.risk}</span></div>
-      </div>
-    </div>`;
+  var total = S.checkins.length;
+  var avg = total ? (S.checkins.reduce(function(a,c){ return a+c.anxiety; },0)/total).toFixed(1) : '0';
+  document.getElementById('avgScore').textContent = avg;
+  document.getElementById('totalCheckins').textContent = total;
+  var recent = S.checkins.slice(0,7).reduce(function(a,c){ return a+c.anxiety; },0) / Math.min(7,total||1);
+  var older = S.checkins.slice(7,14);
+  var olderAvg = older.length ? older.reduce(function(a,c){ return a+c.anxiety; },0)/older.length : recent;
+  var chg = Math.round((recent-olderAvg)/olderAvg*100);
+  document.getElementById('improvePct').textContent = (chg<=0 ? '↓'+Math.abs(chg) : '↑'+chg)+'%';
+
+  document.getElementById('historyList').innerHTML = S.checkins.map(function(ci){
+    var d = new Date(ci.date);
+    var sc = ci.anxiety;
+    var bg = sc<=3?'#d1fae5':sc<=6?'#fef3c7':'#fee2e2';
+    var col = sc<=3?'#065f46':sc<=6?'#92400e':'#991b1b';
+    var riskColors = {LOW:'#d1fae5',MEDIUM:'#fef3c7',HIGH:'#fee2e2',CRITICAL:'#ede9fe'};
+    var riskText = {LOW:'#065f46',MEDIUM:'#92400e',HIGH:'#991b1b',CRITICAL:'#4c1d95'};
+    var tags = (ci.triggers||[]).map(function(t){ return '<span class="h-tag">'+t+'</span>'; }).join('');
+    var rtag = '<span class="h-tag" style="background:'+( riskColors[ci.risk]||'#f1f5f9')+';color:'+(riskText[ci.risk]||'#475569')+'">'+ci.risk+'</span>';
+    return '<div class="history-item">'
+      +'<div class="h-score" style="background:'+bg+';color:'+col+'">'+sc+'</div>'
+      +'<div class="h-meta">'
+      +'<div class="h-date">'+d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'})+' · '+d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})+'</div>'
+      +'<div class="h-note">'+(ci.note||'No notes')+'</div>'
+      +'<div class="h-tags">'+tags+rtag+'</div>'
+      +'</div></div>';
   }).join('');
 }
 
 // ── Exercises ─────────────────────────────────────────
-const EXERCISES=[
-  {id:'478',cat:'breathing',icon:'🫁',iconBg:'blue',name:'4-7-8 Breathing',desc:'Calms the nervous system fast',time:'5 min',level:'Beginner'},
-  {id:'box',cat:'breathing',icon:'⬛',iconBg:'blue',name:'Box Breathing',desc:'Used by Navy SEALs for stress',time:'4 min',level:'Beginner'},
-  {id:'54321',cat:'grounding',icon:'🌿',iconBg:'green',name:'5-4-3-2-1 Grounding',desc:'Anchor to the present moment',time:'3 min',level:'Beginner'},
-  {id:'pmr',cat:'mindfulness',icon:'💆',iconBg:'purple',name:'Progressive Muscle Relaxation',desc:'Release tension from head to toe',time:'10 min',level:'Intermediate'},
-  {id:'breath2x',cat:'breathing',icon:'🌬️',iconBg:'blue',name:'2:1 Breathing',desc:'Exhale twice as long as inhale',time:'3 min',level:'Beginner'},
-  {id:'body',cat:'mindfulness',icon:'🧘',iconBg:'purple',name:'Body Scan',desc:'Full mindful awareness exercise',time:'8 min',level:'Intermediate'},
-  {id:'cold',cat:'quick',icon:'💧',iconBg:'green',name:'Cold Water Reset',desc:'Activate the dive reflex instantly',time:'1 min',level:'Quick'},
-  {id:'senses',cat:'quick',icon:'👁️',iconBg:'orange',name:'Sensory Pause',desc:'Notice one thing per sense',time:'2 min',level:'Quick'},
+var EXERCISES = [
+  {id:'478',  cat:'breathing',   icon:'🫁', iconBg:'blue',   name:'4-7-8 Breathing',              desc:'Calms the nervous system fast',          time:'5 min', level:'Beginner'},
+  {id:'box',  cat:'breathing',   icon:'⬛', iconBg:'blue',   name:'Box Breathing',                 desc:'4-4-4-4 rhythm, used by Navy SEALs',     time:'4 min', level:'Beginner'},
+  {id:'54321',cat:'grounding',   icon:'🌿', iconBg:'green',  name:'5-4-3-2-1 Grounding',          desc:'Anchor yourself to the present moment',  time:'3 min', level:'Beginner'},
+  {id:'pmr',  cat:'mindfulness', icon:'💆', iconBg:'purple', name:'Progressive Muscle Relaxation', desc:'Release tension from head to toe',        time:'10 min',level:'Intermediate'},
+  {id:'breath2x',cat:'breathing',icon:'🌬️',iconBg:'blue',   name:'2:1 Breathing',                desc:'Exhale twice as long as inhale',          time:'3 min', level:'Beginner'},
+  {id:'body', cat:'mindfulness', icon:'🧘', iconBg:'purple', name:'Body Scan',                     desc:'Full mindful awareness',                 time:'8 min', level:'Intermediate'},
+  {id:'cold', cat:'quick',       icon:'💧', iconBg:'green',  name:'Cold Water Reset',              desc:'Activate the dive reflex instantly',      time:'1 min', level:'Quick'},
+  {id:'senses',cat:'quick',      icon:'👁️',iconBg:'orange', name:'Sensory Pause',                 desc:'Notice one thing per sense',             time:'2 min', level:'Quick'},
 ];
-let exFilter='all';
-function filterEx(f,btn){
-  exFilter=f;
-  document.querySelectorAll('.ex-filter-btn').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
+
+function filterEx(f, btn){
+  S.currentExFilter = f;
+  document.querySelectorAll('.ex-filter-btn').forEach(function(b){ b.classList.remove('active'); });
+  if(btn) btn.classList.add('active');
   renderExercises();
 }
+
 function renderExercises(){
-  const list=exFilter==='all'?EXERCISES:EXERCISES.filter(e=>e.cat===exFilter);
-  document.getElementById('exCards').innerHTML=list.map(e=>{
-    const done=S.exercisesCompleted.includes(e.id);
-    return `<div class="ex-card">
-      <div class="ex-icon ${e.iconBg}">${e.icon}</div>
-      <div class="ex-info">
-        <h3>${e.name}</h3>
-        <p>${e.desc}</p>
-        <div class="ex-meta"><span class="ex-pill">⏱ ${e.time}</span><span class="ex-pill">${e.level}</span></div>
-      </div>
-      ${done?'<div class="ex-completed-badge">✅ Done</div>':`<button class="btn-start-ex" onclick="startExercise('${e.id}')">Start</button>`}
-    </div>`;
+  var list = S.currentExFilter === 'all'
+    ? EXERCISES
+    : EXERCISES.filter(function(e){ return e.cat === S.currentExFilter; });
+  document.getElementById('exCards').innerHTML = list.map(function(e){
+    var done = S.exercisesCompleted.indexOf(e.id) !== -1;
+    return '<div class="ex-card">'
+      +'<div class="ex-icon '+e.iconBg+'">'+e.icon+'</div>'
+      +'<div class="ex-info"><h3>'+e.name+'</h3><p>'+e.desc+'</p>'
+      +'<div class="ex-meta"><span class="ex-pill">⏱ '+e.time+'</span><span class="ex-pill">'+e.level+'</span></div>'
+      +'</div>'
+      +(done
+        ? '<div class="ex-completed-badge">✅ Done</div>'
+        : '<button class="btn-start-ex" onclick="startExercise(\''+e.id+'\')">Start</button>')
+      +'</div>';
   }).join('');
 }
-renderExercises();
 
 // ── Breathing runner ───────────────────────────────────
-let breathInterval=null, breathCycle=0, breathMaxCycles=4, breathPhaseTimer=null;
+var breathInterval = null;
+var breathCycle = 0;
+var breathMaxCycles = 4;
+var currentBreathPhases = [];
+
 function startExercise(id){
-  if(id==='54321'){startGrounding();return;}
-  if(id==='cold'){showToast('💧 Splash cold water on your face or hold your wrists under cold water for 30 seconds.');return;}
-  if(id==='senses'){showToast('👁️ Notice: 1 thing you can touch, hear, smell, see, taste.');return;}
-  const patterns={
-    '478':{name:'4-7-8 Breathing',phases:[{l:'Inhale',d:4,c:'inhale'},{l:'Hold',d:7,c:'hold'},{l:'Exhale',d:8,c:'exhale'}],cycles:4},
-    'box':{name:'Box Breathing',phases:[{l:'Inhale',d:4,c:'inhale'},{l:'Hold',d:4,c:'hold'},{l:'Exhale',d:4,c:'exhale'},{l:'Hold',d:4,c:'hold'}],cycles:4},
-    'breath2x':{name:'2:1 Breathing',phases:[{l:'Inhale',d:4,c:'inhale'},{l:'Exhale',d:8,c:'exhale'}],cycles:6},
-    'pmr':{name:'Progressive Relaxation',phases:[{l:'Tense',d:5,c:'hold'},{l:'Relax',d:10,c:'exhale'}],cycles:5},
-    'body':{name:'Body Scan',phases:[{l:'Breathe In',d:4,c:'inhale'},{l:'Breathe Out',d:6,c:'exhale'}],cycles:8},
+  S.activeExerciseId = id;
+  if(id === '54321'){ startGrounding(); return; }
+  if(id === 'cold'){
+    showToast('💧 Splash cold water on your face or hold wrists under cold water for 30s.');
+    markExerciseDone(id);
+    return;
+  }
+  if(id === 'senses'){
+    showToast('👁️ Notice: 1 thing you can touch, hear, smell, see, and taste right now.');
+    markExerciseDone(id);
+    return;
+  }
+  var patterns = {
+    '478':     {name:'4-7-8 Breathing',           phases:[{l:'Inhale',d:4,c:'inhale'},{l:'Hold',d:7,c:'hold'},{l:'Exhale',d:8,c:'exhale'}], cycles:4},
+    'box':     {name:'Box Breathing',              phases:[{l:'Inhale',d:4,c:'inhale'},{l:'Hold',d:4,c:'hold'},{l:'Exhale',d:4,c:'exhale'},{l:'Hold',d:4,c:'hold'}], cycles:4},
+    'breath2x':{name:'2:1 Breathing',             phases:[{l:'Inhale',d:4,c:'inhale'},{l:'Exhale',d:8,c:'exhale'}], cycles:6},
+    'pmr':     {name:'Progressive Relaxation',    phases:[{l:'Tense Muscles',d:5,c:'hold'},{l:'Release & Relax',d:10,c:'exhale'}], cycles:5},
+    'body':    {name:'Body Scan',                 phases:[{l:'Breathe In',d:4,c:'inhale'},{l:'Breathe Out',d:6,c:'exhale'}], cycles:8},
   };
-  const p=patterns[id]||patterns['478'];
-  document.getElementById('runnerTitle').textContent=p.name;
+  var p = patterns[id] || patterns['478'];
+  currentBreathPhases = p.phases;
+  breathCycle = 0;
+  breathMaxCycles = p.cycles;
+  document.getElementById('runnerTitle').textContent = p.name;
   document.getElementById('exRunner').classList.remove('hidden');
-  breathCycle=0; breathMaxCycles=p.cycles;
-  runBreath(p.phases, p.cycles);
+  runBreath(0);
 }
-function runBreath(phases, maxCycles, phaseIdx=0){
-  if(breathCycle>=maxCycles){stopExercise();return;}
-  const phase=phases[phaseIdx%phases.length];
-  const bc=document.getElementById('breathCircle');
-  bc.className='breath-circle '+phase.c;
-  document.getElementById('runnerInstr').textContent=phase.l;
-  document.getElementById('runnerCycles').textContent=`Cycle ${breathCycle+1} of ${maxCycles}`;
-  document.getElementById('runnerProgressBar').style.width=((breathCycle/maxCycles)*100)+'%';
-  let t=phase.d;
-  document.getElementById('runnerCount').textContent=t;
+
+function runBreath(phaseIdx){
+  if(breathCycle >= breathMaxCycles){ stopExercise(); return; }
+  var phase = currentBreathPhases[phaseIdx % currentBreathPhases.length];
+  var bc = document.getElementById('breathCircle');
+  bc.className = 'breath-circle ' + phase.c;
+  document.getElementById('runnerInstr').textContent = phase.l;
+  document.getElementById('runnerCycles').textContent = 'Cycle '+(breathCycle+1)+' of '+breathMaxCycles;
+  var pct = Math.round((breathCycle/breathMaxCycles)*100);
+  document.getElementById('runnerProgressBar').style.width = pct+'%';
+  var phaseStep = document.getElementById('runnerStep');
+  if(phaseStep) phaseStep.textContent = '';
+  var t = phase.d;
+  document.getElementById('runnerCount').textContent = t;
   clearInterval(breathInterval);
-  breathInterval=setInterval(()=>{
-    t--;document.getElementById('runnerCount').textContent=t;
-    if(t<=0){
+  breathInterval = setInterval(function(){
+    t--;
+    document.getElementById('runnerCount').textContent = t;
+    if(t <= 0){
       clearInterval(breathInterval);
-      const nextIdx=phaseIdx+1;
-      if(nextIdx%phases.length===0) breathCycle++;
-      runBreath(phases,maxCycles,nextIdx);
+      var nextIdx = phaseIdx + 1;
+      if(nextIdx % currentBreathPhases.length === 0) breathCycle++;
+      runBreath(nextIdx);
     }
-  },1000);
+  }, 1000);
 }
+
 function stopExercise(){
   clearInterval(breathInterval);
   document.getElementById('exRunner').classList.add('hidden');
-  const lastId=document.querySelector('.btn-start-ex:focus')?.dataset?.id;
+  if(S.activeExerciseId) markExerciseDone(S.activeExerciseId);
+  S.activeExerciseId = null;
   showToast('🎉 Exercise complete! +30 XP');
-  S.xp+=30;
-  document.getElementById('xpText').textContent=`⚡ ${S.xp} XP`;
+  S.xp += 30;
+  document.getElementById('xpText').textContent = '⚡ '+S.xp+' XP';
   renderExercises();
 }
 
-// ── Grounding runner ───────────────────────────────────
-const groundSteps=[
-  {n:5,sense:'SEE'},
-  {n:4,sense:'TOUCH'},
-  {n:3,sense:'HEAR'},
-  {n:2,sense:'SMELL'},
-  {n:1,sense:'TASTE'},
-];
-let groundStepIdx=0, groundItems=[];
-function startGrounding(){
-  groundStepIdx=0; groundItems=[];
-  document.getElementById('groundList').innerHTML='';
-  document.getElementById('groundInput').value='';
-  updateGroundUI();
-  document.getElementById('groundRunner').classList.remove('hidden');
-  setTimeout(()=>document.getElementById('groundInput').focus(),100);
-}
-function updateGroundUI(){
-  const s=groundSteps[groundStepIdx];
-  document.getElementById('groundNum').textContent=s.n;
-  document.getElementById('groundPrompt').textContent=`Things you can ${s.sense}`;
-  document.getElementById('groundProgress').textContent=`${groundItems.length} / ${s.n} named`;
-}
-function addGroundItem(e){
-  if(e.key!=='Enter'&&e.key!==',') return;
-  const val=document.getElementById('groundInput').value.trim();
-  if(!val) return;
-  groundItems.push(val);
-  document.getElementById('groundInput').value='';
-  const li=document.createElement('div');
-  li.className='ground-list-item';li.textContent='✓ '+val;
-  document.getElementById('groundList').appendChild(li);
-  const s=groundSteps[groundStepIdx];
-  document.getElementById('groundProgress').textContent=`${groundItems.length} / ${s.n} named`;
-  if(groundItems.length>=s.n){
-    groundStepIdx++;
-    groundItems=[];
-    document.getElementById('groundList').innerHTML='';
-    if(groundStepIdx>=groundSteps.length){stopGrounding();return;}
-    setTimeout(updateGroundUI,400);
+function markExerciseDone(id){
+  if(S.exercisesCompleted.indexOf(id) === -1){
+    S.exercisesCompleted.push(id);
+    localStorage.setItem('ex_done', JSON.stringify(S.exercisesCompleted));
   }
 }
+
+// ── Grounding runner ───────────────────────────────────
+var groundSteps = [
+  {n:5, sense:'SEE'},
+  {n:4, sense:'TOUCH'},
+  {n:3, sense:'HEAR'},
+  {n:2, sense:'SMELL'},
+  {n:1, sense:'TASTE'},
+];
+var groundStepIdx = 0;
+var groundItems = [];
+
+function startGrounding(){
+  groundStepIdx = 0; groundItems = [];
+  document.getElementById('groundList').innerHTML = '';
+  document.getElementById('groundInput').value = '';
+  updateGroundUI();
+  document.getElementById('groundRunner').classList.remove('hidden');
+  setTimeout(function(){ document.getElementById('groundInput').focus(); }, 150);
+}
+
+function updateGroundUI(){
+  var s = groundSteps[groundStepIdx];
+  document.getElementById('groundNum').textContent = s.n;
+  document.getElementById('groundPrompt').textContent = 'Things you can ' + s.sense;
+  document.getElementById('groundProgress').textContent = groundItems.length + ' / ' + s.n + ' named';
+}
+
+function addGroundItem(e){
+  if(e.key !== 'Enter') return;
+  var val = document.getElementById('groundInput').value.trim();
+  if(!val) return;
+  groundItems.push(val);
+  document.getElementById('groundInput').value = '';
+  var li = document.createElement('div');
+  li.className = 'ground-list-item';
+  li.textContent = '✓ ' + val;
+  document.getElementById('groundList').appendChild(li);
+  var s = groundSteps[groundStepIdx];
+  document.getElementById('groundProgress').textContent = groundItems.length + ' / ' + s.n + ' named';
+  if(groundItems.length >= s.n){
+    groundStepIdx++;
+    groundItems = [];
+    document.getElementById('groundList').innerHTML = '';
+    if(groundStepIdx >= groundSteps.length){ stopGrounding(); return; }
+    setTimeout(updateGroundUI, 500);
+  }
+}
+
 function stopGrounding(){
   document.getElementById('groundRunner').classList.add('hidden');
+  markExerciseDone('54321');
   showToast('🌿 Grounding complete! You did great. +30 XP');
-  S.xp+=30;
-  document.getElementById('xpText').textContent=`⚡ ${S.xp} XP`;
+  S.xp += 30;
+  document.getElementById('xpText').textContent = '⚡ '+S.xp+' XP';
+  renderExercises();
 }
 
 // ── Journal ───────────────────────────────────────────
-const PROMPTS=[
+var PROMPTS = [
   'What made you feel anxious today?',
   'What are 3 things you\'re grateful for?',
   'What would you tell a friend feeling this way?',
@@ -1000,104 +1128,176 @@ const PROMPTS=[
   'Describe a moment of peace this week.',
   'What do you need most today?',
 ];
+
 function renderJournal(){
-  const pEl=document.getElementById('journalPrompts');
-  pEl.innerHTML=PROMPTS.map((p,i)=>`<button class="jp-btn" onclick="setJournalPrompt(${i},this)">${p.substring(0,28)}…</button>`).join('');
+  var pEl = document.getElementById('journalPrompts');
+  if(pEl){
+    pEl.innerHTML = PROMPTS.map(function(p,i){
+      var short = p.length > 28 ? p.substring(0,28)+'…' : p;
+      return '<button class="jp-btn" onclick="setJournalPrompt('+i+',this)">'+short+'</button>';
+    }).join('');
+  }
   renderJournalList();
 }
-function setJournalPrompt(i,btn){
-  document.getElementById('activePrompt').textContent=PROMPTS[i];
-  document.getElementById('journalTA').focus();
-  document.querySelectorAll('.jp-btn').forEach(b=>b.style.borderColor='');
-  btn.style.borderColor='var(--primary)';
-  btn.style.color='var(--primary)';
+
+function setJournalPrompt(i, btn){
+  var promptEl = document.getElementById('activePrompt');
+  if(promptEl) promptEl.textContent = PROMPTS[i];
+  document.querySelectorAll('.jp-btn').forEach(function(b){
+    b.style.borderColor = '';
+    b.style.color = '';
+  });
+  if(btn){ btn.style.borderColor='var(--primary)'; btn.style.color='var(--primary)'; }
+  var ta = document.getElementById('journalTA');
+  if(ta) ta.focus();
 }
+
 function updateWC(){
-  const words=document.getElementById('journalTA').value.trim().split(/\s+/).filter(Boolean).length;
-  document.getElementById('wcDisplay').textContent=words+' word'+(words===1?'':'s');
+  var ta = document.getElementById('journalTA');
+  if(!ta) return;
+  var words = ta.value.trim().split(/\s+/).filter(Boolean).length;
+  var wc = document.getElementById('wcDisplay');
+  if(wc) wc.textContent = words + (words===1?' word':' words');
 }
+
 function saveJournal(){
-  const text=document.getElementById('journalTA').value.trim();
-  if(!text){showToast('Write something first!');return;}
-  const moodTags=[...document.querySelectorAll('#journalMoodTags .tag.active')].map(t=>t.textContent);
-  S.journalEntries.unshift({date:Date.now(),text,prompt:document.getElementById('activePrompt').textContent,moods:moodTags});
-  localStorage.setItem('journal',JSON.stringify(S.journalEntries));
-  document.getElementById('journalTA').value='';
-  document.querySelectorAll('#journalMoodTags .tag').forEach(t=>t.classList.remove('active'));
+  var ta = document.getElementById('journalTA');
+  var text = ta ? ta.value.trim() : '';
+  if(!text){ showToast('Write something first!'); return; }
+  var moods = [];
+  document.querySelectorAll('#journalMoodTags .tag.active').forEach(function(t){ moods.push(t.textContent); });
+  var promptEl = document.getElementById('activePrompt');
+  S.journalEntries.unshift({
+    date: Date.now(),
+    text: text,
+    prompt: promptEl ? promptEl.textContent : '',
+    moods: moods
+  });
+  localStorage.setItem('journal', JSON.stringify(S.journalEntries));
+  if(ta) ta.value = '';
+  document.querySelectorAll('#journalMoodTags .tag').forEach(function(t){ t.classList.remove('active'); });
   updateWC();
   showToast('📓 Entry saved! +20 XP');
-  S.xp+=20;
+  S.xp += 20;
+  document.getElementById('xpText').textContent = '⚡ '+S.xp+' XP';
   renderJournalList();
 }
-function clearJournal(){document.getElementById('journalTA').value='';updateWC();}
+
+function clearJournal(){
+  var ta = document.getElementById('journalTA');
+  if(ta) ta.value = '';
+  updateWC();
+}
+
 function renderJournalList(){
-  document.getElementById('journalList').innerHTML=S.journalEntries.length?
-    S.journalEntries.map(e=>{
-      const d=new Date(e.date);
-      return `<div class="jl-item">
-        <div class="jl-date">${d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</div>
-        <div class="jl-excerpt">${e.text.substring(0,120)}${e.text.length>120?'…':''}</div>
-        <div class="jl-mood">${(e.moods||[]).join(' ')}</div>
-      </div>`;
-    }).join(''):
-    '<div style="color:var(--muted);font-size:13px;text-align:center;padding:20px">No journal entries yet</div>';
+  var el = document.getElementById('journalList');
+  if(!el) return;
+  if(!S.journalEntries.length){
+    el.innerHTML = '<div style="color:var(--muted);font-size:13px;text-align:center;padding:20px 0">No journal entries yet — write your first one above!</div>';
+    return;
+  }
+  el.innerHTML = S.journalEntries.map(function(e){
+    var d = new Date(e.date);
+    var excerpt = e.text.length > 120 ? e.text.substring(0,120)+'…' : e.text;
+    return '<div class="jl-item">'
+      +'<div class="jl-date">'+d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})+'</div>'
+      +'<div class="jl-excerpt">'+excerpt+'</div>'
+      +'<div class="jl-mood">'+(e.moods||[]).join(' ')+'</div>'
+      +'</div>';
+  }).join('');
 }
 
 // ── Goals ─────────────────────────────────────────────
-const ACHIEVEMENTS=[
-  {icon:'🔥',name:'5-Day Streak',locked:false},
+var ACHIEVEMENTS = [
+  {icon:'🔥',name:'5-Day Streak',  locked:false},
   {icon:'📋',name:'First Check-In',locked:false},
-  {icon:'🫁',name:'Breathwork Pro',locked:false},
-  {icon:'📓',name:'Journaler',locked:true},
-  {icon:'🌙',name:'Sleep Tracker',locked:true},
-  {icon:'🏆',name:'30 Check-Ins',locked:true},
+  {icon:'🫁',name:'Breathwork Pro', locked:false},
+  {icon:'📓',name:'Journaler',      locked:true},
+  {icon:'🌙',name:'Sleep Tracker',  locked:true},
+  {icon:'🏆',name:'30 Check-Ins',   locked:true},
 ];
+
 function renderGoals(){
-  document.getElementById('achievements').innerHTML=ACHIEVEMENTS.map(a=>
-    `<div class="achievement${a.locked?' locked':''}"><span class="ach-icon">${a.icon}</span><span class="ach-name">${a.name}</span></div>`
-  ).join('');
-  document.getElementById('goalsList').innerHTML=S.goals.map(g=>{
-    const pct=Math.round((g.days.filter(Boolean).length/g.target)*100);
-    return `<div class="goal-card">
-      <div class="goal-top">
-        <div><div class="goal-name">${g.name}</div><div class="goal-cat">${g.cat}</div></div>
-        <div style="font-size:15px;font-weight:800;color:var(--accent)">${pct}%</div>
-      </div>
-      <div class="goal-progress-wrap"><div class="goal-progress-bar" style="width:${pct}%"></div></div>
-      <div class="goal-footer"><span>${g.days.filter(Boolean).length}/${g.target} days this week</span></div>
-      <div class="goal-check-row">${g.days.map((d,i)=>`<div class="goal-day${d?' done':''}${i===new Date().getDay()?' today':''}" onclick="toggleGoalDay(${g.id},${i})">${['S','M','T','W','T','F','S'][i]}</div>`).join('')}</div>
-    </div>`;
+  var achEl = document.getElementById('achievements');
+  if(achEl){
+    achEl.innerHTML = ACHIEVEMENTS.map(function(a){
+      return '<div class="achievement'+(a.locked?' locked':'')+'"><span class="ach-icon">'+a.icon+'</span><span class="ach-name">'+a.name+'</span></div>';
+    }).join('');
+  }
+  var listEl = document.getElementById('goalsList');
+  if(!listEl) return;
+  listEl.innerHTML = S.goals.map(function(g){
+    var done = g.days.filter(Boolean).length;
+    var pct = Math.round((done/g.target)*100);
+    var today = new Date().getDay();
+    var dayLabels = ['S','M','T','W','T','F','S'];
+    var dayBoxes = g.days.map(function(d,i){
+      return '<div class="goal-day'+(d?' done':'')+(i===today?' today':'')+'" onclick="toggleGoalDay('+g.id+','+i+')" title="'+['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][i]+'">'+dayLabels[i]+'</div>';
+    }).join('');
+    return '<div class="goal-card">'
+      +'<div class="goal-top"><div><div class="goal-name">'+g.name+'</div><div class="goal-cat">'+g.cat+'</div></div>'
+      +'<div style="font-size:15px;font-weight:800;color:var(--accent)">'+pct+'%</div></div>'
+      +'<div class="goal-progress-wrap"><div class="goal-progress-bar" style="width:'+pct+'%"></div></div>'
+      +'<div class="goal-footer"><span>'+done+'/'+g.target+' days this week</span></div>'
+      +'<div class="goal-check-row">'+dayBoxes+'</div>'
+      +'</div>';
   }).join('');
 }
-function toggleGoalDay(gid,day){
-  const g=S.goals.find(x=>x.id===gid);
-  if(g){g.days[day]=g.days[day]?0:1;localStorage.setItem('goals',JSON.stringify(S.goals));renderGoals();showToast(g.days[day]?'✅ Day marked!':'Day unmarked');}
+
+function toggleGoalDay(gid, day){
+  var g = S.goals.find(function(x){ return x.id===gid; });
+  if(g){
+    g.days[day] = g.days[day] ? 0 : 1;
+    localStorage.setItem('goals', JSON.stringify(S.goals));
+    renderGoals();
+    showToast(g.days[day] ? '✅ Day marked!' : 'Day unmarked');
+  }
 }
+
 function addGoalPrompt(){
-  const name=prompt('Goal name:');
-  if(!name)return;
-  const cat=prompt('Category (e.g. Sleep, Exercise, Mindfulness):','Mindfulness');
-  S.goals.push({id:Date.now(),name,cat:cat||'Other',target:7,days:[0,0,0,0,0,0,0],progress:0});
-  localStorage.setItem('goals',JSON.stringify(S.goals));
+  var modal = document.getElementById('addGoalModal');
+  if(modal) modal.classList.remove('hidden');
+}
+function closeGoalModal(){
+  var modal = document.getElementById('addGoalModal');
+  if(modal) modal.classList.add('hidden');
+}
+function saveNewGoal(){
+  var nameEl = document.getElementById('newGoalName');
+  var catEl = document.getElementById('newGoalCat');
+  var name = nameEl ? nameEl.value.trim() : '';
+  var cat = catEl ? catEl.value : 'Mindfulness';
+  if(!name){ showToast('Enter a goal name first!'); return; }
+  S.goals.push({id:Date.now(), name:name, cat:cat, target:7, days:[0,0,0,0,0,0,0]});
+  localStorage.setItem('goals', JSON.stringify(S.goals));
+  if(nameEl) nameEl.value = '';
+  closeGoalModal();
   renderGoals();
   showToast('🎯 Goal added!');
 }
 
 // ── Emergency ─────────────────────────────────────────
-function openEmergency(){document.getElementById('emergencyModal').classList.remove('hidden')}
-function closeEmergency(){document.getElementById('emergencyModal').classList.add('hidden')}
+function openEmergency(){ document.getElementById('emergencyModal').classList.remove('hidden'); }
+function closeEmergency(){ document.getElementById('emergencyModal').classList.add('hidden'); }
 
 // ── Toast ─────────────────────────────────────────────
-let toastTimer=null;
+var toastTimer = null;
 function showToast(msg){
-  const t=document.getElementById('toast');
-  t.textContent=msg;t.classList.remove('hidden');
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.remove('hidden');
   clearTimeout(toastTimer);
-  toastTimer=setTimeout(()=>t.classList.add('hidden'),2800);
+  toastTimer = setTimeout(function(){ t.classList.add('hidden'); }, 3000);
 }
 
 // ── Init ──────────────────────────────────────────────
-window.addEventListener('resize',()=>{renderMiniChart('anxiety')});
+renderMiniChart('anxiety');
+window.addEventListener('resize', function(){
+  renderMiniChart(currentMiniChartType);
+  if(document.getElementById('tab-history') && !document.getElementById('tab-history').classList.contains('hidden')){
+    renderHistChart(currentHistChartType);
+  }
+});
 </script>
 </body>
 </html>
