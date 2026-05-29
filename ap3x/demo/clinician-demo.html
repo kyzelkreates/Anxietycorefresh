@@ -1092,5 +1092,289 @@ window.addEventListener('resize',()=>{
   if(currentPatient&&currentDetailTab==='chart') switchDetailTab('chart',null);
 });
 </script>
+
+<!-- ═══════════════════════════════════════════════════
+     AP3X INTELLIGENT AI — TOUR GUIDE LAYER (CLINICIAN)
+     Pure additive — zero changes to existing code
+     ═══════════════════════════════════════════════════ -->
+
+<div id="tourOverlay" style="display:none;position:fixed;inset:0;z-index:9000;pointer-events:none">
+  <div id="tourBdTop"    style="position:absolute;left:0;right:0;top:0;background:rgba(5,12,25,.85);transition:all .35s ease"></div>
+  <div id="tourBdBottom" style="position:absolute;left:0;right:0;bottom:0;background:rgba(5,12,25,.85);transition:all .35s ease"></div>
+  <div id="tourBdLeft"   style="position:absolute;top:0;bottom:0;left:0;background:rgba(5,12,25,.85);transition:all .35s ease"></div>
+  <div id="tourBdRight"  style="position:absolute;top:0;bottom:0;right:0;background:rgba(5,12,25,.85);transition:all .35s ease"></div>
+  <div id="tourHighlight" style="position:absolute;border-radius:10px;box-shadow:0 0 0 3px #60a5fa,0 0 0 6px rgba(96,165,250,.22);transition:all .35s ease;pointer-events:none"></div>
+</div>
+
+<div id="tourTooltip" style="display:none;position:fixed;z-index:9100;max-width:320px;width:88vw;background:#0a1e38;border:1.5px solid rgba(96,165,250,.3);border-radius:14px;padding:20px;box-shadow:0 8px 32px rgba(0,0,0,.5);transition:opacity .25s ease,transform .25s ease">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+    <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#2563eb,#7c3aed);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0">🧠</div>
+    <div>
+      <div style="color:#fff;font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase">AP3X GUIDE</div>
+      <div style="color:#8ab4f8;font-size:10px" id="tourStepLabel">Step 1 of 5</div>
+    </div>
+    <button onclick="TOUR.skip()" style="margin-left:auto;background:none;border:none;color:rgba(255,255,255,.35);font-size:18px;cursor:pointer;line-height:1;padding:0" title="Close tour">✕</button>
+  </div>
+  <div style="color:#60a5fa;font-size:13px;font-weight:700;margin-bottom:6px" id="tourStepTitle"></div>
+  <div style="color:#c8d8f0;font-size:13px;line-height:1.65" id="tourStepBody"></div>
+  <div style="display:flex;align-items:center;gap:8px;margin-top:16px;flex-wrap:wrap">
+    <button id="tourBackBtn" onclick="TOUR.prev()" style="padding:7px 14px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);color:#fff;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer">← Back</button>
+    <button id="tourNextBtn" onclick="TOUR.next()" style="padding:7px 18px;background:linear-gradient(135deg,#2563eb,#1d4ed8);border:none;color:#fff;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;flex:1">Next →</button>
+    <button onclick="TOUR.skip()" style="padding:7px 10px;background:none;border:none;color:rgba(255,255,255,.3);font-size:12px;cursor:pointer">Skip</button>
+  </div>
+  <div style="display:flex;gap:5px;justify-content:center;margin-top:12px" id="tourDots"></div>
+</div>
+
+<div id="tourWelcomeModal" style="display:none;position:fixed;inset:0;z-index:9200;background:rgba(5,12,25,.9);align-items:center;justify-content:center;padding:24px">
+  <div style="background:#0a1e38;border:1.5px solid rgba(96,165,250,.28);border-radius:16px;padding:28px 24px;max-width:360px;width:100%;text-align:center;animation:tourFadeIn .3s ease">
+    <div style="font-size:40px;margin-bottom:12px">🧠</div>
+    <div style="color:#fff;font-size:18px;font-weight:800;margin-bottom:8px">Welcome, Clinician</div>
+    <div style="color:#8ab4f8;font-size:13px;line-height:1.65;margin-bottom:24px">This is your first time on the AP3X Intelligent AI Clinician Dashboard. Would you like a quick guided walkthrough?</div>
+    <button onclick="TOUR.start()" style="width:100%;padding:13px;background:linear-gradient(135deg,#2563eb,#7c3aed);border:none;color:#fff;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:10px">🚀 Start Guided Tour</button>
+    <button onclick="TOUR.dismiss()" style="width:100%;padding:11px;background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.12);color:#c8d8f0;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer">Skip for now</button>
+  </div>
+</div>
+
+<!-- Floating replay button -->
+<button id="tourReplayBtn" onclick="TOUR.start()" title="Restart guided tour" style="position:fixed;bottom:24px;right:24px;width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#2563eb,#7c3aed);border:none;color:#fff;font-size:18px;cursor:pointer;z-index:8000;box-shadow:0 4px 14px rgba(37,99,235,.45);display:flex;align-items:center;justify-content:center;transition:transform .2s" onmouseenter="this.style.transform='scale(1.1)'" onmouseleave="this.style.transform='scale(1)'">🧠</button>
+
+<style>
+@keyframes tourFadeIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+</style>
+
+<script>
+// ── AP3X INTELLIGENT AI — TOUR GUIDE (CLINICIAN DASHBOARD) ───────────────
+// Pure additive layer. No existing code modified.
+// ─────────────────────────────────────────────────────────────────────────
+var TOUR = (function(){
+
+  var STORAGE = {
+    COMPLETED : 'ap3x_tour_completed_cli',
+    STEP      : 'ap3x_tour_step_cli',
+    VERSION   : 'ap3x_tour_version_cli',
+  };
+  var TOUR_VERSION = '1.0';
+
+  var STEPS = [
+    {
+      target: 'view-overview',
+      nav: 'overview',
+      title: 'Dashboard Overview',
+      body: 'This is your main command centre. At a glance you can see how many patients need attention, today\'s check-in count, and who is flagged as high or critical risk. The most urgent patients are shown below the charts.'
+    },
+    {
+      target: 'view-alerts',
+      nav: 'alerts',
+      title: 'Alerts & Notifications',
+      body: 'Real-time alerts appear here when a patient\'s risk level spikes, they go missing, or a trend worsens. You can acknowledge alerts, escalate to a supervisor, or jump straight to the patient\'s profile.'
+    },
+    {
+      target: 'view-patients',
+      nav: 'patients',
+      title: 'Patient List',
+      body: 'A full searchable, sortable table of all your patients. Filter by risk level, sort by last check-in or anxiety score, and click any row to open their detailed profile panel on the right.'
+    },
+    {
+      target: 'view-analytics',
+      nav: 'analytics',
+      title: 'Analytics & Insights',
+      body: 'Population-level trends across your caseload — anxiety over time, sleep quality, top triggers, check-in engagement rates, and more. Use these to spot patterns and adjust your clinical approach.'
+    },
+    {
+      target: 'view-settings',
+      nav: 'settings',
+      title: 'Settings & Customisation',
+      body: 'Adjust alert thresholds, your clinician profile, and notification preferences here. You can also restart this guided tour any time by clicking the 🧠 button in the bottom-right corner.'
+    },
+  ];
+
+  var currentStep = 0;
+  var active = false;
+
+  function init(){
+    localStorage.setItem(STORAGE.VERSION, TOUR_VERSION);
+    var completed = localStorage.getItem(STORAGE.COMPLETED);
+    if(!completed){
+      setTimeout(function(){ showWelcome(); }, 900);
+    }
+  }
+
+  function showWelcome(){
+    var m = document.getElementById('tourWelcomeModal');
+    if(m){ m.style.display = 'flex'; }
+  }
+
+  function hideWelcome(){
+    var m = document.getElementById('tourWelcomeModal');
+    if(m) m.style.display = 'none';
+  }
+
+  function dismiss(){
+    hideWelcome();
+    localStorage.setItem(STORAGE.COMPLETED, 'skipped');
+  }
+
+  function start(){
+    hideWelcome();
+    currentStep = 0;
+    active = true;
+    localStorage.setItem(STORAGE.STEP, '0');
+    showStep(0);
+  }
+
+  function next(){
+    if(currentStep < STEPS.length - 1){
+      currentStep++;
+      localStorage.setItem(STORAGE.STEP, currentStep);
+      showStep(currentStep);
+    } else {
+      finish();
+    }
+  }
+
+  function prev(){
+    if(currentStep > 0){
+      currentStep--;
+      localStorage.setItem(STORAGE.STEP, currentStep);
+      showStep(currentStep);
+    }
+  }
+
+  function skip(){ finish(); }
+
+  function finish(){
+    active = false;
+    hideOverlay();
+    hideTooltip();
+    localStorage.setItem(STORAGE.COMPLETED, 'true');
+    showFinishToast();
+  }
+
+  function showStep(idx){
+    var step = STEPS[idx];
+    if(!step) return;
+    if(step.nav && typeof showView === 'function') showView(step.nav);
+    setTimeout(function(){
+      var el = document.getElementById(step.target);
+      scrollToElement(el);
+      setTimeout(function(){
+        if(el) highlightElement(el);
+        showTooltipNear(el, idx);
+      }, 150);
+    }, step.nav ? 250 : 80);
+  }
+
+  function scrollToElement(el){
+    if(!el) return;
+    try{
+      var rect = el.getBoundingClientRect();
+      var sy = window.pageYOffset || document.documentElement.scrollTop;
+      window.scrollTo({top: Math.max(0, sy+rect.top-80), behavior:'smooth'});
+    }catch(e){}
+  }
+
+  function highlightElement(el){
+    var rect = el.getBoundingClientRect();
+    var pad = 10;
+    var top = rect.top - pad, left = rect.left - pad;
+    var w = rect.width + pad*2, h = rect.height + pad*2;
+    var ov = document.getElementById('tourOverlay');
+    if(!ov) return;
+    ov.style.display = 'block';
+    s(document.getElementById('tourBdTop'),    {top:'0',left:'0',right:'0',height:Math.max(0,top)+'px',bottom:''});
+    s(document.getElementById('tourBdBottom'), {bottom:'0',left:'0',right:'0',top:(top+h)+'px',height:'',width:''});
+    s(document.getElementById('tourBdLeft'),   {top:top+'px',left:'0',width:Math.max(0,left)+'px',height:h+'px',right:''});
+    s(document.getElementById('tourBdRight'),  {top:top+'px',left:(left+w)+'px',right:'0',height:h+'px',width:''});
+    s(document.getElementById('tourHighlight'),{top:top+'px',left:left+'px',width:w+'px',height:h+'px'});
+  }
+
+  function s(el, styles){
+    if(!el) return;
+    Object.keys(styles).forEach(function(k){ el.style[k]=styles[k]; });
+  }
+
+  function hideOverlay(){
+    var ov = document.getElementById('tourOverlay');
+    if(ov) ov.style.display = 'none';
+  }
+
+  function showTooltipNear(el, idx){
+    var step = STEPS[idx];
+    var tt = document.getElementById('tourTooltip');
+    if(!tt) return;
+    document.getElementById('tourStepTitle').textContent = step.title;
+    document.getElementById('tourStepBody').textContent  = step.body;
+    document.getElementById('tourStepLabel').textContent = 'Step '+(idx+1)+' of '+STEPS.length;
+
+    var dotsEl = document.getElementById('tourDots');
+    dotsEl.innerHTML = '';
+    STEPS.forEach(function(_,i){
+      var d=document.createElement('div');
+      d.style.cssText='width:6px;height:6px;border-radius:50%;background:'+(i===idx?'#60a5fa':'rgba(255,255,255,.18)');
+      dotsEl.appendChild(d);
+    });
+
+    document.getElementById('tourBackBtn').style.display = idx===0?'none':'';
+    document.getElementById('tourNextBtn').textContent   = idx===STEPS.length-1?'✓ Finish':'Next →';
+
+    tt.style.display   = 'block';
+    tt.style.opacity   = '0';
+    tt.style.transform = 'translateY(8px)';
+
+    var rect = el
+      ? el.getBoundingClientRect()
+      : {top:window.innerHeight/2,bottom:window.innerHeight/2+2,left:window.innerWidth/2-160,right:window.innerWidth/2+160,width:320,height:2};
+
+    var ttW = Math.min(320, window.innerWidth*0.88);
+    var left = rect.left + rect.width/2 - ttW/2;
+    left = Math.max(8, Math.min(left, window.innerWidth-ttW-8));
+    var estimH = 230, margin = 14, top;
+    if(rect.bottom + margin + estimH < window.innerHeight){
+      top = rect.bottom + margin;
+    } else if(rect.top - margin - estimH > 0){
+      top = rect.top - margin - estimH;
+    } else {
+      top = Math.max(8, window.innerHeight/2 - estimH/2);
+    }
+
+    tt.style.left  = left+'px';
+    tt.style.top   = top+'px';
+    tt.style.width = ttW+'px';
+    requestAnimationFrame(function(){ tt.style.opacity='1'; tt.style.transform='translateY(0)'; });
+  }
+
+  function hideTooltip(){
+    var tt = document.getElementById('tourTooltip');
+    if(tt){ tt.style.opacity='0'; setTimeout(function(){ tt.style.display='none'; },260); }
+  }
+
+  function showFinishToast(){
+    if(typeof showToast === 'function'){
+      showToast('🧠 Tour complete! Click 🧠 anytime to replay.');
+    }
+  }
+
+  return { init:init, start:start, next:next, prev:prev, skip:skip, dismiss:dismiss, finish:finish };
+})();
+
+window.addEventListener('load', function(){
+  TOUR.init();
+  // Inject "Replay Tour" into Settings view
+  setTimeout(function(){
+    var settingsView = document.getElementById('view-settings');
+    if(settingsView && !document.getElementById('tourSettingsBtn')){
+      var wrap = document.createElement('div');
+      wrap.style.cssText = 'max-width:500px;margin-top:16px';
+      wrap.innerHTML = '<div style="background:var(--surface);border-radius:var(--r);padding:16px;box-shadow:var(--shadow)">'
+        +'<div style="font-size:13px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:6px">🧠 Guided Tour</div>'
+        +'<div style="font-size:13px;color:var(--muted);margin-bottom:12px">New to the dashboard? Run the guided tour to get a full walkthrough of all features.</div>'
+        +'<button id="tourSettingsBtn" onclick="TOUR.start()" style="padding:9px 20px;background:linear-gradient(135deg,#2563eb,#7c3aed);border:none;color:#fff;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">🚀 Start Guided Tour</button>'
+        +'</div>';
+      settingsView.appendChild(wrap);
+    }
+  }, 700);
+});
+</script>
+
 </body>
 </html>

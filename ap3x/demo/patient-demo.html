@@ -1299,5 +1299,351 @@ window.addEventListener('resize', function(){
   }
 });
 </script>
+
+<!-- ═══════════════════════════════════════════════════
+     AP3X INTELLIGENT AI — TOUR GUIDE LAYER (PATIENT)
+     Pure additive — zero changes to existing code
+     ═══════════════════════════════════════════════════ -->
+
+<!-- Tour overlay + tooltip -->
+<div id="tourOverlay" style="display:none;position:fixed;inset:0;z-index:9000;pointer-events:none">
+  <!-- Dark backdrop (4 rectangles that surround the highlight) -->
+  <div id="tourBdTop"    style="position:absolute;left:0;right:0;top:0;background:rgba(10,18,35,.82);transition:all .35s ease"></div>
+  <div id="tourBdBottom" style="position:absolute;left:0;right:0;bottom:0;background:rgba(10,18,35,.82);transition:all .35s ease"></div>
+  <div id="tourBdLeft"   style="position:absolute;top:0;bottom:0;left:0;background:rgba(10,18,35,.82);transition:all .35s ease"></div>
+  <div id="tourBdRight"  style="position:absolute;top:0;bottom:0;right:0;background:rgba(10,18,35,.82);transition:all .35s ease"></div>
+  <!-- Highlight ring -->
+  <div id="tourHighlight" style="position:absolute;border-radius:12px;box-shadow:0 0 0 3px #60a5fa,0 0 0 6px rgba(96,165,250,.25);transition:all .35s ease;pointer-events:none"></div>
+</div>
+
+<!-- Tooltip panel -->
+<div id="tourTooltip" style="display:none;position:fixed;z-index:9100;max-width:300px;width:90vw;background:#0f2d52;border:1.5px solid rgba(96,165,250,.35);border-radius:14px;padding:20px;box-shadow:0 8px 32px rgba(0,0,0,.4);transition:opacity .25s ease,transform .25s ease">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+    <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#2563eb,#7c3aed);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0">🧠</div>
+    <div>
+      <div style="color:#fff;font-size:12px;font-weight:700;letter-spacing:.04em">AP3X GUIDE</div>
+      <div style="color:#8ab4f8;font-size:10px" id="tourStepLabel">Step 1 of 5</div>
+    </div>
+    <button onclick="TOUR.skip()" style="margin-left:auto;background:none;border:none;color:rgba(255,255,255,.4);font-size:18px;cursor:pointer;line-height:1;padding:0" title="Close tour">✕</button>
+  </div>
+  <div style="color:#60a5fa;font-size:13px;font-weight:700;margin-bottom:6px" id="tourStepTitle"></div>
+  <div style="color:#c8d8f0;font-size:13px;line-height:1.6" id="tourStepBody"></div>
+  <div style="display:flex;align-items:center;gap:8px;margin-top:16px;flex-wrap:wrap">
+    <button id="tourBackBtn" onclick="TOUR.prev()" style="padding:7px 14px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;transition:background .2s">← Back</button>
+    <button id="tourNextBtn" onclick="TOUR.next()" style="padding:7px 18px;background:linear-gradient(135deg,#2563eb,#1d4ed8);border:none;color:#fff;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;flex:1;transition:opacity .2s">Next →</button>
+    <button onclick="TOUR.skip()" style="padding:7px 12px;background:none;border:none;color:rgba(255,255,255,.35);font-size:12px;cursor:pointer">Skip</button>
+  </div>
+  <!-- Step dots -->
+  <div style="display:flex;gap:5px;justify-content:center;margin-top:12px" id="tourDots"></div>
+</div>
+
+<!-- Welcome modal (first-time) -->
+<div id="tourWelcomeModal" style="display:none;position:fixed;inset:0;z-index:9200;background:rgba(10,18,35,.88);display:flex;align-items:center;justify-content:center;padding:20px">
+  <div style="background:#0f2d52;border:1.5px solid rgba(96,165,250,.3);border-radius:16px;padding:28px 24px;max-width:340px;width:100%;text-align:center;animation:tourFadeIn .3s ease">
+    <div style="font-size:40px;margin-bottom:12px">🧠</div>
+    <div style="color:#fff;font-size:18px;font-weight:800;margin-bottom:8px">Welcome to AP3X Intelligent AI</div>
+    <div style="color:#8ab4f8;font-size:13px;line-height:1.6;margin-bottom:24px">Looks like this is your first time here. Would you like a quick guided tour? It only takes about a minute.</div>
+    <button onclick="TOUR.start()" style="width:100%;padding:13px;background:linear-gradient(135deg,#2563eb,#7c3aed);border:none;color:#fff;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:10px">🚀 Start Tour</button>
+    <button onclick="TOUR.dismiss()" style="width:100%;padding:11px;background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.15);color:#c8d8f0;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer">Skip for now</button>
+  </div>
+</div>
+
+<!-- Tour replay button (always visible in bottom corner) -->
+<button id="tourReplayBtn" onclick="TOUR.start()" title="Restart tour guide" style="position:fixed;bottom:90px;right:14px;width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#2563eb,#7c3aed);border:none;color:#fff;font-size:17px;cursor:pointer;z-index:8000;box-shadow:0 3px 12px rgba(37,99,235,.4);display:flex;align-items:center;justify-content:center;transition:transform .2s" onmouseenter="this.style.transform='scale(1.12)'" onmouseleave="this.style.transform='scale(1)'">🧠</button>
+
+<style>
+@keyframes tourFadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+</style>
+
+<script>
+// ── AP3X INTELLIGENT AI — TOUR GUIDE (PATIENT PWA) ───────────────────────
+// Pure additive layer. Reads existing DOM. Touches nothing else.
+// ─────────────────────────────────────────────────────────────────────────
+var TOUR = (function(){
+
+  var STORAGE = {
+    COMPLETED : 'ap3x_tour_completed',
+    STEP      : 'ap3x_tour_step',
+    VERSION   : 'ap3x_tour_version',
+  };
+  var TOUR_VERSION = '1.0';
+
+  // Patient PWA tour steps: [targetId, navigateTo, title, body]
+  var STEPS = [
+    {
+      target: 'tab-home',
+      nav: 'home',
+      title: 'Your Home Dashboard',
+      body: 'This is your personal wellness hub. You can see your mood for today, a snapshot of this week\'s anxiety trend, and quick shortcuts to everything you need — all in one place.'
+    },
+    {
+      target: 'nav-checkin',
+      nav: null,
+      title: 'Daily Check-In',
+      body: 'Tap here to log how you\'re feeling right now. It takes about 2 minutes. The more you check in, the better we understand your patterns and the more useful your insights become.'
+    },
+    {
+      target: 'tab-exercises',
+      nav: 'exercises',
+      title: 'Breathing & Calm Exercises',
+      body: 'When anxiety feels high, come here. You\'ll find breathing exercises, grounding techniques, and mindfulness practices — all designed to help you feel calmer within minutes.'
+    },
+    {
+      target: 'tab-history',
+      nav: 'history',
+      title: 'Your Progress & History',
+      body: 'This is where you can see how you\'ve been doing over time. Your check-in history, anxiety trends, and sleep patterns are all tracked here so you can notice what\'s helping.'
+    },
+    {
+      target: 'tab-goals',
+      nav: 'goals',
+      title: 'Goals & Habits',
+      body: 'Build healthy daily habits here. Set personal goals, track your streaks, and earn achievements as you go. Small consistent steps make a big difference over time.'
+    },
+  ];
+
+  var currentStep = 0;
+  var active = false;
+
+  function init(){
+    localStorage.setItem(STORAGE.VERSION, TOUR_VERSION);
+    var completed = localStorage.getItem(STORAGE.COMPLETED);
+    if(!completed){
+      setTimeout(function(){ showWelcome(); }, 800);
+    }
+  }
+
+  function showWelcome(){
+    var m = document.getElementById('tourWelcomeModal');
+    if(m) m.style.display = 'flex';
+  }
+
+  function hideWelcome(){
+    var m = document.getElementById('tourWelcomeModal');
+    if(m) m.style.display = 'none';
+  }
+
+  function dismiss(){
+    hideWelcome();
+    localStorage.setItem(STORAGE.COMPLETED, 'skipped');
+  }
+
+  function start(){
+    hideWelcome();
+    currentStep = 0;
+    active = true;
+    localStorage.setItem(STORAGE.STEP, '0');
+    showStep(currentStep);
+  }
+
+  function next(){
+    if(currentStep < STEPS.length - 1){
+      currentStep++;
+      localStorage.setItem(STORAGE.STEP, currentStep);
+      showStep(currentStep);
+    } else {
+      finish();
+    }
+  }
+
+  function prev(){
+    if(currentStep > 0){
+      currentStep--;
+      localStorage.setItem(STORAGE.STEP, currentStep);
+      showStep(currentStep);
+    }
+  }
+
+  function skip(){
+    finish();
+  }
+
+  function finish(){
+    active = false;
+    hideOverlay();
+    hideTooltip();
+    localStorage.setItem(STORAGE.COMPLETED, 'true');
+    localStorage.setItem(STORAGE.STEP, STEPS.length);
+    showFinishToast();
+  }
+
+  function showStep(idx){
+    var step = STEPS[idx];
+    if(!step) return;
+
+    // Navigate to the right tab if needed
+    if(step.nav){
+      if(typeof goTab === 'function') goTab(step.nav);
+    }
+
+    // Small delay so tab renders before we measure
+    setTimeout(function(){
+      var el = document.getElementById(step.target);
+      if(!el){
+        // If element not found, just show tooltip at center
+        showTooltipAt(null, idx);
+        return;
+      }
+      scrollToElement(el);
+      setTimeout(function(){
+        highlightElement(el);
+        showTooltipNear(el, idx);
+      }, 120);
+    }, step.nav ? 220 : 80);
+  }
+
+  function scrollToElement(el){
+    try {
+      var rect = el.getBoundingClientRect();
+      var scrollY = window.pageYOffset || document.documentElement.scrollTop;
+      var targetY = scrollY + rect.top - 80;
+      window.scrollTo({top: Math.max(0, targetY), behavior: 'smooth'});
+    } catch(e){}
+  }
+
+  function highlightElement(el){
+    var rect = el.getBoundingClientRect();
+    var pad = 8;
+    var top    = rect.top - pad;
+    var left   = rect.left - pad;
+    var width  = rect.width + pad*2;
+    var height = rect.height + pad*2;
+
+    var ov = document.getElementById('tourOverlay');
+    ov.style.display = 'block';
+    ov.style.pointerEvents = 'none';
+
+    // Position the 4 curtains
+    set(document.getElementById('tourBdTop'),    {top:'0',left:'0',right:'0',height: Math.max(0,top)+'px'});
+    set(document.getElementById('tourBdBottom'), {bottom:'0',left:'0',right:'0',top: (top+height)+'px',height:''});
+    set(document.getElementById('tourBdLeft'),   {top:top+'px',left:'0',width: Math.max(0,left)+'px',height:height+'px'});
+    set(document.getElementById('tourBdRight'),  {top:top+'px',left:(left+width)+'px',right:'0',height:height+'px',width:''});
+
+    // Highlight ring
+    set(document.getElementById('tourHighlight'),{
+      top:top+'px', left:left+'px', width:width+'px', height:height+'px'
+    });
+  }
+
+  function set(el, styles){
+    if(!el) return;
+    Object.keys(styles).forEach(function(k){ el.style[k] = styles[k]; });
+  }
+
+  function hideOverlay(){
+    var ov = document.getElementById('tourOverlay');
+    if(ov) ov.style.display = 'none';
+  }
+
+  function showTooltipNear(el, idx){
+    var step = STEPS[idx];
+    var tt = document.getElementById('tourTooltip');
+    if(!tt) return;
+
+    // Populate content
+    document.getElementById('tourStepTitle').textContent = step.title;
+    document.getElementById('tourStepBody').textContent  = step.body;
+    document.getElementById('tourStepLabel').textContent = 'Step '+(idx+1)+' of '+STEPS.length;
+
+    // Dots
+    var dotsEl = document.getElementById('tourDots');
+    dotsEl.innerHTML = '';
+    STEPS.forEach(function(_,i){
+      var dot = document.createElement('div');
+      dot.style.cssText = 'width:6px;height:6px;border-radius:50%;background:'+(i===idx?'#60a5fa':'rgba(255,255,255,.2)');
+      dotsEl.appendChild(dot);
+    });
+
+    // Back button visibility
+    document.getElementById('tourBackBtn').style.display = idx === 0 ? 'none' : '';
+    // Next button label
+    document.getElementById('tourNextBtn').textContent = idx === STEPS.length-1 ? '✓ Finish' : 'Next →';
+
+    tt.style.display = 'block';
+    tt.style.opacity = '0';
+    tt.style.transform = 'translateY(8px)';
+
+    // Position tooltip below or above element
+    var rect = el ? el.getBoundingClientRect() : {top:window.innerHeight/2, bottom:window.innerHeight/2+1, left:16, right:window.innerWidth-16, width:window.innerWidth-32, height:1};
+    var ttWidth = Math.min(300, window.innerWidth * 0.9);
+    var margin = 12;
+
+    // Horizontal: centre on element, clamp to screen
+    var left = rect.left + rect.width/2 - ttWidth/2;
+    left = Math.max(8, Math.min(left, window.innerWidth - ttWidth - 8));
+
+    // Vertical: prefer below, fall back to above
+    var top;
+    var estimatedHeight = 220;
+    if(rect.bottom + margin + estimatedHeight < window.innerHeight){
+      top = rect.bottom + margin;
+    } else if(rect.top - margin - estimatedHeight > 0){
+      top = rect.top - margin - estimatedHeight;
+    } else {
+      top = window.innerHeight/2 - estimatedHeight/2;
+    }
+
+    tt.style.left  = left+'px';
+    tt.style.top   = top+'px';
+    tt.style.width = ttWidth+'px';
+
+    // Animate in
+    requestAnimationFrame(function(){
+      tt.style.opacity = '1';
+      tt.style.transform = 'translateY(0)';
+    });
+  }
+
+  function showTooltipAt(el, idx){
+    showTooltipNear(el || {getBoundingClientRect:function(){ return {top:window.innerHeight/2-100,bottom:window.innerHeight/2,left:window.innerWidth/2-150,right:window.innerWidth/2+150,width:300,height:100}; }}, idx);
+  }
+
+  function hideTooltip(){
+    var tt = document.getElementById('tourTooltip');
+    if(tt){ tt.style.opacity = '0'; setTimeout(function(){ tt.style.display='none'; }, 250); }
+  }
+
+  function showFinishToast(){
+    if(typeof showToast === 'function'){
+      showToast('🧠 Tour complete! Tap 🧠 anytime to replay.');
+    }
+  }
+
+  // Add "Replay Tour" to the home insight strip on first render
+  function injectReplayHint(){
+    var strip = document.getElementById('dailyInsight');
+    if(strip && !document.getElementById('tourReplayHintBtn')){
+      var btn = document.createElement('button');
+      btn.id = 'tourReplayHintBtn';
+      btn.textContent = '🧠 Replay Tour';
+      btn.style.cssText = 'margin-top:8px;padding:5px 12px;background:var(--primary);color:#fff;border:none;border-radius:99px;font-size:12px;font-weight:700;cursor:pointer';
+      btn.onclick = function(){ TOUR.start(); };
+      strip.appendChild(btn);
+    }
+  }
+
+  // Public API
+  return { init:init, start:start, next:next, prev:prev, skip:skip, dismiss:dismiss, finish:finish };
+
+})();
+
+// Kick off after existing app init
+window.addEventListener('load', function(){
+  TOUR.init();
+  // Small delay to let app render
+  setTimeout(function(){
+    var strip = document.getElementById('dailyInsight');
+    if(strip && !document.getElementById('tourReplayHintBtn')){
+      var btn = document.createElement('button');
+      btn.id = 'tourReplayHintBtn';
+      btn.textContent = '🧠 Replay Tour';
+      btn.style.cssText = 'margin-top:8px;display:inline-block;padding:5px 12px;background:var(--primary);color:#fff;border:none;border-radius:99px;font-size:12px;font-weight:700;cursor:pointer';
+      btn.onclick = function(){ TOUR.start(); };
+      strip.appendChild(btn);
+    }
+  }, 600);
+});
+</script>
+
 </body>
 </html>
