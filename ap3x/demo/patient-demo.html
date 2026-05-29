@@ -7,491 +7,1097 @@
 <style>
 :root{
   --bg:#f0f6ff;--surface:#fff;--surface2:#e8f0fe;--border:#c8d8f0;
-  --primary:#2563eb;--primary-d:#1d4ed8;--accent:#10b981;
+  --primary:#2563eb;--primary-d:#1d4ed8;--accent:#10b981;--accent-d:#059669;
+  --warn:#f59e0b;--high:#ef4444;--critical:#7c3aed;
   --text:#1e293b;--muted:#64748b;--light:#94a3b8;
-  --low:#10b981;--medium:#f59e0b;--high:#ef4444;--critical:#7c3aed;
-  --r:12px;--rs:8px;--shadow:0 2px 8px rgba(37,99,235,.08);--t:.2s ease;
+  --low:#10b981;--medium:#f59e0b;
+  --r:14px;--rs:9px;--shadow:0 2px 10px rgba(37,99,235,.09);--t:.2s ease;
 }
 [data-theme=dark]{
   --bg:#0b1220;--surface:#131f35;--surface2:#1e2d45;--border:#253450;
   --text:#e2eafc;--muted:#8a9dc0;--light:#4a6080;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
-  background:var(--bg);color:var(--text);min-height:100dvh;max-width:480px;
-  margin:0 auto;padding-bottom:80px;font-size:15px;line-height:1.5}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100dvh;max-width:480px;margin:0 auto;padding-bottom:82px;font-size:15px;line-height:1.5}
 
 /* header */
 .ap3x-header{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--surface);border-bottom:1px solid var(--border);box-shadow:var(--shadow)}
-.header-brand{display:flex;align-items:center;gap:6px;font-weight:700}
+.header-brand{display:flex;align-items:center;gap:7px;font-weight:700}
 .brand-dot{width:10px;height:10px;border-radius:50%;background:var(--primary)}
 .brand-name{font-size:16px;color:var(--primary)}
 .brand-sub{font-size:12px;color:var(--muted);font-weight:400}
-.header-right{display:flex;align-items:center;gap:8px}
-.btn-icon{background:none;border:none;cursor:pointer;font-size:18px;padding:4px}
+.header-right{display:flex;align-items:center;gap:6px}
+.btn-icon{background:none;border:none;cursor:pointer;font-size:19px;padding:5px;border-radius:8px;transition:background var(--t)}
+.btn-icon:hover{background:var(--surface2)}
 .back-link{font-size:12px;color:var(--muted);text-decoration:none;padding:5px 10px;background:var(--surface2);border-radius:var(--rs);border:1px solid var(--border)}
 .back-link:hover{color:var(--primary)}
 
 /* streak */
-.streak-banner{display:flex;align-items:center;gap:8px;padding:10px 16px;background:linear-gradient(135deg,#10b981,#059669);color:#fff;font-weight:600;font-size:14px}
-.streak-fire{font-size:18px}
+.streak-banner{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:linear-gradient(135deg,#10b981,#059669);color:#fff;font-size:14px}
+.streak-left{display:flex;align-items:center;gap:8px;font-weight:600}
+.streak-xp{font-size:12px;background:rgba(255,255,255,.2);border-radius:99px;padding:2px 10px}
 
 /* bottom nav */
 .bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;display:flex;background:var(--surface);border-top:1px solid var(--border);box-shadow:0 -2px 8px rgba(0,0,0,.08);z-index:100}
-.nav-tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 4px;background:none;border:none;color:var(--muted);font-size:10px;cursor:pointer;transition:color var(--t)}
-.nav-tab.active,.nav-tab:hover{color:var(--primary)}
+.nav-tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 4px;background:none;border:none;color:var(--muted);font-size:10px;cursor:pointer;transition:color var(--t);position:relative}
+.nav-tab.active{color:var(--primary)}
+.nav-tab .notif-dot{position:absolute;top:7px;right:calc(50% - 14px);width:7px;height:7px;border-radius:50%;background:var(--high);border:2px solid var(--surface)}
 
 /* tab pages */
-.tab-page{padding:20px 16px;animation:fadeIn .2s ease}
+.tab-page{padding:18px 16px;animation:fadeIn .2s ease}
 .tab-page.hidden{display:none!important}
-@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
-.section-title{font-size:22px;font-weight:700;margin-bottom:4px}
-.section-sub{font-size:14px;color:var(--muted);margin-bottom:20px}
+@keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+.section-title{font-size:22px;font-weight:700;margin-bottom:3px}
+.section-sub{font-size:14px;color:var(--muted);margin-bottom:18px}
+
+/* mood ring / homepage */
+.home-greeting{background:linear-gradient(135deg,var(--primary),#7c3aed);border-radius:var(--r);padding:20px;color:#fff;margin-bottom:16px;position:relative;overflow:hidden}
+.home-greeting::after{content:'🧠';position:absolute;right:16px;top:50%;transform:translateY(-50%);font-size:48px;opacity:.18}
+.hg-title{font-size:19px;font-weight:700;margin-bottom:4px}
+.hg-sub{font-size:13px;opacity:.85}
+.quick-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.qa-btn{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);padding:14px 12px;display:flex;flex-direction:column;align-items:flex-start;gap:6px;cursor:pointer;transition:all var(--t);text-align:left}
+.qa-btn:hover{border-color:var(--primary);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+.qa-icon{font-size:22px}
+.qa-label{font-size:13px;font-weight:700;color:var(--text)}
+.qa-desc{font-size:11px;color:var(--muted)}
+.insight-strip{background:var(--surface);border-radius:var(--r);padding:14px;margin-bottom:16px;box-shadow:var(--shadow);border-left:4px solid var(--primary)}
+.insight-strip h4{font-size:13px;font-weight:700;margin-bottom:4px;color:var(--primary)}
+.insight-strip p{font-size:13px;color:var(--text);line-height:1.5}
+.mood-row{display:flex;gap:8px;justify-content:space-between;margin-bottom:16px}
+.mood-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;background:var(--surface);border:2px solid transparent;border-radius:var(--r);padding:12px 4px;cursor:pointer;transition:all var(--t)}
+.mood-btn:hover{border-color:var(--border);transform:translateY(-2px)}
+.mood-btn.selected{border-color:var(--primary);background:var(--surface2)}
+.mood-emoji{font-size:26px}
+.mood-label{font-size:10px;color:var(--muted);font-weight:600}
 
 /* scale */
-.scale-wrap{background:var(--surface);border-radius:var(--r);padding:20px 16px;margin-bottom:20px;box-shadow:var(--shadow)}
-.scale-labels{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:12px}
-.scale-track{display:flex;gap:4px}
-.scale-btn{flex:1;aspect-ratio:1;border-radius:var(--rs);border:2px solid transparent;font-size:13px;font-weight:600;cursor:pointer;transition:all var(--t)}
-.scale-btn:hover{transform:scale(1.08)}
+.scale-wrap{background:var(--surface);border-radius:var(--r);padding:18px 14px;margin-bottom:16px;box-shadow:var(--shadow)}
+.scale-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.scale-title{font-size:14px;font-weight:700}
+.scale-labels{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:10px}
+.scale-track{display:flex;gap:3px}
+.scale-btn{flex:1;aspect-ratio:1;border-radius:7px;border:2px solid transparent;font-size:12px;font-weight:700;cursor:pointer;transition:all var(--t)}
+.scale-btn:hover{transform:scale(1.1)}
 .scale-btn[data-v="0"],.scale-btn[data-v="1"]{background:#d1fae5;color:#065f46}
 .scale-btn[data-v="2"],.scale-btn[data-v="3"]{background:#d9f99d;color:#3f6212}
 .scale-btn[data-v="4"],.scale-btn[data-v="5"]{background:#fef9c3;color:#713f12}
 .scale-btn[data-v="6"],.scale-btn[data-v="7"]{background:#fed7aa;color:#7c2d12}
 .scale-btn[data-v="8"],.scale-btn[data-v="9"]{background:#fecaca;color:#7f1d1d}
 .scale-btn[data-v="10"]{background:#fca5a5;color:#7f1d1d}
-.scale-btn.selected{border-color:var(--primary);box-shadow:0 0 0 3px rgba(37,99,235,.25);transform:scale(1.12)}
-.score-display{text-align:center;margin-top:12px;font-size:32px;font-weight:800;color:var(--primary);min-height:40px}
+.scale-btn.selected{border-color:var(--primary);box-shadow:0 0 0 3px rgba(37,99,235,.25);transform:scale(1.14)}
+.score-display{text-align:center;margin-top:10px;font-size:30px;font-weight:800;color:var(--primary);min-height:38px}
+.score-label{text-align:center;font-size:13px;color:var(--muted);margin-top:2px;min-height:18px}
 
 /* form */
-.form-block{margin-bottom:16px}
-.form-label{display:block;font-size:13px;font-weight:600;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em}
-.form-textarea{width:100%;background:var(--surface);border:1.5px solid var(--border);border-radius:var(--rs);padding:10px 12px;font-size:15px;color:var(--text);font-family:inherit;resize:vertical}
-.form-textarea:focus,.form-input:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(37,99,235,.12)}
-.form-input{width:100%;background:var(--surface);border:1.5px solid var(--border);border-radius:var(--rs);padding:10px 12px;font-size:15px;color:var(--text)}
-.tag-group{display:flex;flex-wrap:wrap;gap:8px}
+.form-card{background:var(--surface);border-radius:var(--r);padding:16px;margin-bottom:14px;box-shadow:var(--shadow)}
+.form-card-title{font-size:14px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.form-label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em}
+.form-textarea{width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--rs);padding:10px 12px;font-size:14px;color:var(--text);font-family:inherit;resize:none;min-height:70px}
+.form-textarea:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(37,99,235,.12)}
+.tag-group{display:flex;flex-wrap:wrap;gap:7px}
 .tag{padding:5px 12px;border-radius:99px;border:1.5px solid var(--border);background:var(--surface);color:var(--muted);font-size:13px;cursor:pointer;transition:all var(--t)}
 .tag.active{background:var(--primary);border-color:var(--primary);color:#fff}
-.form-slider{width:100%;accent-color:var(--primary);margin-top:4px}
+.form-slider-row{display:flex;align-items:center;gap:10px}
+.form-slider{flex:1;accent-color:var(--primary)}
+.slider-val{font-size:15px;font-weight:700;color:var(--primary);min-width:24px;text-align:right}
+.step-indicator{display:flex;gap:6px;justify-content:center;margin-bottom:16px}
+.step-dot{width:8px;height:8px;border-radius:50%;background:var(--border)}
+.step-dot.active{background:var(--primary)}
+.step-dot.done{background:var(--accent)}
+
+/* multi-step checkin */
+.checkin-step{animation:fadeIn .2s ease}
+.checkin-step.hidden{display:none!important}
+.step-progress{height:4px;background:var(--border);border-radius:99px;margin-bottom:20px;overflow:hidden}
+.step-progress-bar{height:100%;background:var(--primary);border-radius:99px;transition:width .4s ease}
 
 /* buttons */
 .btn-primary{width:100%;padding:14px;background:var(--primary);color:#fff;border:none;border-radius:var(--r);font-size:16px;font-weight:700;cursor:pointer;transition:background var(--t),transform var(--t)}
 .btn-primary:hover{background:var(--primary-d)}
 .btn-primary:active{transform:scale(.98)}
-.btn-secondary{width:100%;padding:12px;background:var(--surface2);color:var(--text);border:1.5px solid var(--border);border-radius:var(--r);font-size:15px;font-weight:600;cursor:pointer;margin-top:8px}
-.btn-emergency{width:100%;padding:14px;background:none;border:2px solid var(--high);color:var(--high);border-radius:var(--r);font-size:15px;font-weight:700;cursor:pointer;margin-top:24px;transition:all var(--t)}
+.btn-secondary{width:100%;padding:12px;background:var(--surface2);color:var(--text);border:1.5px solid var(--border);border-radius:var(--r);font-size:15px;font-weight:600;cursor:pointer;transition:all var(--t)}
+.btn-secondary:hover{border-color:var(--primary);color:var(--primary)}
+.btn-row{display:flex;gap:10px;margin-top:12px}
+.btn-row .btn-primary,.btn-row .btn-secondary{flex:1;width:auto}
+.btn-emergency{width:100%;padding:14px;background:none;border:2px solid var(--high);color:var(--high);border-radius:var(--r);font-size:15px;font-weight:700;cursor:pointer;margin-top:20px;transition:all var(--t)}
 .btn-emergency:hover{background:var(--high);color:#fff}
+.btn-sm{padding:7px 14px;font-size:13px;font-weight:600;border-radius:var(--rs);cursor:pointer;border:1.5px solid var(--border);background:var(--surface);color:var(--text);transition:all var(--t)}
+.btn-sm:hover{border-color:var(--primary);color:var(--primary)}
+.btn-sm.filled{background:var(--primary);color:#fff;border-color:var(--primary)}
 
 /* feedback */
-.feedback-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);padding:16px;margin-top:16px;animation:fadeIn .3s ease}
-.risk-badge{display:inline-block;padding:4px 12px;border-radius:99px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px}
+.feedback-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);padding:18px;margin-top:16px;animation:fadeIn .3s ease}
+.feedback-card.risk-high{border-color:var(--high);background:#fff5f5}
+.feedback-card.risk-critical{border-color:var(--critical);background:#faf5ff}
+.risk-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:99px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px}
 .risk-badge.LOW{background:#d1fae5;color:#065f46}
 .risk-badge.MEDIUM{background:#fef3c7;color:#92400e}
 .risk-badge.HIGH{background:#fee2e2;color:#991b1b}
 .risk-badge.CRITICAL{background:#ede9fe;color:#4c1d95}
-.feedback-sugg{font-size:14px;color:var(--text);line-height:1.6}
+.feedback-sugg{font-size:14px;color:var(--text);line-height:1.6;margin-bottom:12px}
+.feedback-actions{display:flex;gap:8px;flex-wrap:wrap}
+.feedback-tip{font-size:13px;color:var(--muted);background:var(--surface2);border-radius:var(--rs);padding:8px 12px;margin-top:8px;border-left:3px solid var(--accent)}
 
-/* history */
+/* history / chart */
 .chart-wrap{background:var(--surface);border-radius:var(--r);padding:16px;margin-bottom:16px;box-shadow:var(--shadow)}
+.chart-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.chart-title{font-size:14px;font-weight:700}
+.chart-tabs{display:flex;gap:4px}
+.chart-tab{padding:4px 10px;border-radius:99px;font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid var(--border);background:none;color:var(--muted);transition:all var(--t)}
+.chart-tab.active{background:var(--primary);border-color:var(--primary);color:#fff}
+canvas{width:100%!important;display:block}
 .history-list{display:flex;flex-direction:column;gap:8px}
-.history-item{background:var(--surface);border-radius:var(--rs);padding:12px 14px;display:flex;align-items:center;gap:12px;box-shadow:var(--shadow)}
-.h-score{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;flex-shrink:0}
-.h-meta{flex:1}
-.h-date{font-size:12px;color:var(--muted)}
-.h-note{font-size:13px;color:var(--text);margin-top:2px}
+.history-item{background:var(--surface);border-radius:var(--rs);padding:11px 14px;display:flex;align-items:center;gap:12px;box-shadow:var(--shadow);cursor:pointer;transition:all var(--t);border:1px solid transparent}
+.history-item:hover{border-color:var(--primary);box-shadow:0 0 0 2px rgba(37,99,235,.1)}
+.h-score{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;flex-shrink:0}
+.h-meta{flex:1;min-width:0}
+.h-date{font-size:11px;color:var(--muted)}
+.h-note{font-size:13px;color:var(--text);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.h-tags{display:flex;gap:4px;margin-top:4px;flex-wrap:wrap}
+.h-tag{font-size:10px;padding:2px 7px;border-radius:99px;background:var(--surface2);color:var(--muted);border:1px solid var(--border)}
+.history-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px}
+.hstat{background:var(--surface);border-radius:var(--rs);padding:12px;text-align:center;box-shadow:var(--shadow)}
+.hstat-val{font-size:20px;font-weight:800;color:var(--primary)}
+.hstat-lbl{font-size:11px;color:var(--muted);margin-top:2px}
 
 /* exercises */
-.ex-cards{display:flex;flex-direction:column;gap:12px}
-.ex-card{background:var(--surface);border-radius:var(--r);padding:16px;display:flex;align-items:center;gap:14px;box-shadow:var(--shadow)}
-.ex-icon{font-size:28px;flex-shrink:0}
+.ex-filter{display:flex;gap:6px;margin-bottom:14px;overflow-x:auto;padding-bottom:4px}
+.ex-filter-btn{padding:5px 13px;border-radius:99px;font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid var(--border);background:none;color:var(--muted);white-space:nowrap;transition:all var(--t)}
+.ex-filter-btn.active{background:var(--primary);border-color:var(--primary);color:#fff}
+.ex-cards{display:flex;flex-direction:column;gap:10px}
+.ex-card{background:var(--surface);border-radius:var(--r);padding:14px 16px;display:flex;align-items:center;gap:14px;box-shadow:var(--shadow);transition:all var(--t)}
+.ex-card:hover{box-shadow:0 4px 16px rgba(37,99,235,.12)}
+.ex-icon{font-size:26px;flex-shrink:0;width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center}
+.ex-icon.blue{background:#dbeafe}.ex-icon.green{background:#d1fae5}.ex-icon.purple{background:#ede9fe}.ex-icon.orange{background:#ffedd5}
 .ex-info{flex:1}
-.ex-info h3{font-size:15px;font-weight:700}
-.ex-info p{font-size:13px;color:var(--muted);margin-top:2px}
-.btn-start-ex{padding:8px 16px;background:var(--surface2);border:1.5px solid var(--primary);color:var(--primary);border-radius:var(--rs);font-size:13px;font-weight:700;cursor:pointer;flex-shrink:0;transition:all var(--t)}
+.ex-info h3{font-size:14px;font-weight:700}
+.ex-info p{font-size:12px;color:var(--muted);margin-top:2px}
+.ex-meta{display:flex;gap:6px;margin-top:5px}
+.ex-pill{font-size:11px;padding:2px 8px;border-radius:99px;background:var(--surface2);color:var(--muted)}
+.btn-start-ex{padding:7px 14px;background:var(--surface2);border:1.5px solid var(--primary);color:var(--primary);border-radius:var(--rs);font-size:12px;font-weight:700;cursor:pointer;flex-shrink:0;transition:all var(--t)}
 .btn-start-ex:hover{background:var(--primary);color:#fff}
-.ex-runner{position:fixed;inset:0;background:rgba(11,18,32,.95);z-index:200;display:flex;align-items:center;justify-content:center}
+.ex-completed-badge{font-size:12px;color:var(--accent);font-weight:700;flex-shrink:0;display:flex;align-items:center;gap:3px}
+
+/* exercise runner */
+.ex-runner{position:fixed;inset:0;background:rgba(11,18,32,.97);z-index:200;display:flex;align-items:center;justify-content:center}
 .ex-runner.hidden{display:none!important}
-.runner-inner{display:flex;flex-direction:column;align-items:center;gap:24px;padding:40px 24px;max-width:320px;width:100%}
-.breath-circle{width:80px;height:80px;border-radius:50%;background:radial-gradient(circle,#60a5fa 0%,#2563eb 60%,#1d4ed8 100%);box-shadow:0 0 32px rgba(96,165,250,.5);transition:transform 1s ease-in-out,box-shadow 1s ease-in-out}
-.breath-circle.inhale{transform:scale(1.8);box-shadow:0 0 48px rgba(96,165,250,.8)}
-.breath-circle.hold{transform:scale(1.8);box-shadow:0 0 64px rgba(96,165,250,.6)}
+.runner-inner{display:flex;flex-direction:column;align-items:center;gap:20px;padding:40px 24px;max-width:340px;width:100%}
+.runner-title{font-size:16px;color:rgba(255,255,255,.6);text-align:center;font-weight:600;text-transform:uppercase;letter-spacing:.08em}
+.breath-circle{width:90px;height:90px;border-radius:50%;background:radial-gradient(circle,#60a5fa 0%,#2563eb 60%,#1d4ed8 100%);box-shadow:0 0 32px rgba(96,165,250,.5);transition:transform 1s ease-in-out,box-shadow 1s ease-in-out}
+.breath-circle.inhale{transform:scale(1.9);box-shadow:0 0 52px rgba(96,165,250,.85)}
+.breath-circle.hold{transform:scale(1.9);box-shadow:0 0 64px rgba(167,139,250,.7)}
 .breath-circle.exhale{transform:scale(1);box-shadow:0 0 16px rgba(96,165,250,.2)}
-.runner-instr{font-size:28px;font-weight:700;color:#fff;text-align:center}
-.runner-step{font-size:14px;color:#8ab4f8;text-align:center}
+.runner-instr{font-size:30px;font-weight:800;color:#fff;text-align:center}
+.runner-step{font-size:14px;color:#8ab4f8;text-align:center;max-width:240px;line-height:1.5}
+.runner-count{font-size:52px;font-weight:900;color:#fff;min-height:64px;text-align:center}
+.runner-progress{width:100%;height:5px;background:rgba(255,255,255,.15);border-radius:99px;overflow:hidden}
+.runner-progress-bar{height:100%;background:var(--accent);border-radius:99px;transition:width .5s ease}
+.runner-cycles{font-size:13px;color:rgba(255,255,255,.5);text-align:center}
+.btn-runner-stop{padding:10px 28px;background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.25);color:#fff;border-radius:99px;font-size:14px;font-weight:600;cursor:pointer;transition:all var(--t)}
+.btn-runner-stop:hover{background:rgba(255,255,255,.2)}
+
+/* grounding runner */
+.ground-step{text-align:center}
+.ground-number{font-size:80px;font-weight:900;color:var(--primary);line-height:1}
+.ground-prompt{font-size:20px;font-weight:700;color:#fff;margin-top:8px}
+.ground-input{width:100%;background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.2);border-radius:var(--r);padding:12px 14px;font-size:15px;color:#fff;font-family:inherit;text-align:center;margin-top:14px}
+.ground-input::placeholder{color:rgba(255,255,255,.4)}
+.ground-input:focus{outline:none;border-color:rgba(96,165,250,.8)}
+.ground-list{display:flex;flex-direction:column;gap:6px;margin-top:12px;width:100%}
+.ground-list-item{background:rgba(255,255,255,.08);border-radius:var(--rs);padding:8px 14px;font-size:14px;color:#fff;border-left:3px solid var(--accent)}
+
+/* journal */
+.journal-prompts{display:flex;gap:7px;margin-bottom:12px;overflow-x:auto;padding-bottom:4px}
+.jp-btn{padding:6px 13px;border-radius:99px;font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid var(--border);background:none;color:var(--muted);white-space:nowrap;transition:all var(--t);flex-shrink:0}
+.jp-btn:hover{border-color:var(--primary);color:var(--primary)}
+.journal-editor{background:var(--surface);border-radius:var(--r);padding:16px;box-shadow:var(--shadow);margin-bottom:14px}
+.journal-prompt-text{font-size:14px;color:var(--primary);font-weight:600;margin-bottom:8px;font-style:italic}
+.journal-ta{width:100%;border:none;background:transparent;font-size:15px;color:var(--text);font-family:inherit;resize:none;min-height:120px;line-height:1.6}
+.journal-ta:focus{outline:none}
+.journal-footer{display:flex;align-items:center;justify-content:space-between;padding-top:10px;border-top:1px solid var(--border)}
+.wc{font-size:12px;color:var(--muted)}
+.mood-tag-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.journal-list{display:flex;flex-direction:column;gap:10px}
+.jl-item{background:var(--surface);border-radius:var(--r);padding:14px;box-shadow:var(--shadow);cursor:pointer}
+.jl-date{font-size:11px;color:var(--muted);margin-bottom:4px}
+.jl-excerpt{font-size:13px;color:var(--text);line-height:1.5}
+.jl-mood{font-size:12px;margin-top:6px}
 
 /* log */
-.log-section{background:var(--surface);border-radius:var(--r);padding:16px;margin-bottom:16px;box-shadow:var(--shadow)}
-.log-subtitle{font-size:15px;font-weight:700;margin-bottom:12px}
-.trigger-list{display:flex;flex-direction:column;gap:8px}
+.log-section{background:var(--surface);border-radius:var(--r);padding:14px;margin-bottom:14px;box-shadow:var(--shadow)}
+.log-subtitle{font-size:14px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.trigger-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.trigger-chip{background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--rs);padding:8px 10px;cursor:pointer;transition:all var(--t);text-align:center}
+.trigger-chip:hover,.trigger-chip.active{border-color:var(--primary);background:#dbeafe}
+.trigger-chip .tc-icon{font-size:20px;display:block;margin-bottom:3px}
+.trigger-chip .tc-name{font-size:11px;color:var(--text);font-weight:600}
+.trigger-list{display:flex;flex-direction:column;gap:7px}
 .trigger-item{display:flex;align-items:center;gap:10px;padding:10px;background:var(--surface2);border-radius:var(--rs)}
-.t-sev{width:28px;height:28px;border-radius:50%;background:var(--primary);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.t-name{font-size:14px;font-weight:600}
-.t-date{font-size:12px;color:var(--muted)}
+.t-sev{width:26px;height:26px;border-radius:50%;background:var(--primary);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.t-name{font-size:13px;font-weight:600}
+.t-date{font-size:11px;color:var(--muted)}
+
+/* goals */
+.goals-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.goal-card{background:var(--surface);border-radius:var(--r);padding:14px;margin-bottom:10px;box-shadow:var(--shadow)}
+.goal-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px}
+.goal-name{font-size:14px;font-weight:700}
+.goal-cat{font-size:11px;color:var(--muted);margin-top:2px}
+.goal-progress-wrap{height:8px;background:var(--border);border-radius:99px;overflow:hidden;margin-bottom:6px}
+.goal-progress-bar{height:100%;border-radius:99px;background:var(--accent);transition:width .5s ease}
+.goal-footer{display:flex;align-items:center;justify-content:space-between;font-size:12px;color:var(--muted)}
+.goal-check-row{display:flex;gap:4px;margin-top:6px}
+.goal-day{width:24px;height:24px;border-radius:5px;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:10px;cursor:pointer;transition:background var(--t)}
+.goal-day.done{background:var(--accent);color:#fff}
+.goal-day.today{border:2px solid var(--primary)}
+.achievement-row{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;margin-bottom:16px}
+.achievement{background:var(--surface);border-radius:var(--r);padding:12px;text-align:center;flex-shrink:0;width:90px;box-shadow:var(--shadow);border:1px solid var(--border)}
+.ach-icon{font-size:24px;display:block;margin-bottom:4px}
+.ach-name{font-size:10px;color:var(--muted);font-weight:600}
+.achievement.locked{opacity:.45;filter:grayscale(1)}
 
 /* modal */
-.modal{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:300;display:flex;align-items:center;justify-content:center;padding:24px}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:300;display:flex;align-items:flex-end;justify-content:center;padding:0}
 .modal.hidden{display:none!important}
-.modal-inner{background:var(--surface);border-radius:var(--r);padding:24px;max-width:360px;width:100%;text-align:center}
-.modal-inner h3{font-size:20px;font-weight:700;margin-bottom:12px}
+.modal-inner{background:var(--surface);border-radius:var(--r) var(--r) 0 0;padding:24px;max-width:480px;width:100%;text-align:center;animation:slideUp .25s ease}
+@keyframes slideUp{from{transform:translateY(40px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal-inner h3{font-size:20px;font-weight:700;margin-bottom:8px}
 .modal-inner p{font-size:14px;color:var(--muted);margin-bottom:20px}
-.btn-emerg-large{display:block;padding:14px;background:var(--high);color:#fff;border-radius:var(--r);font-size:16px;font-weight:700;text-decoration:none;text-align:center;margin-bottom:10px}
+.btn-emerg-large{display:block;padding:14px;background:var(--high);color:#fff;border-radius:var(--r);font-size:16px;font-weight:700;text-decoration:none;text-align:center;margin-bottom:10px;border:none;cursor:pointer;width:100%}
+.modal-handle{width:36px;height:4px;border-radius:99px;background:var(--border);margin:0 auto 16px}
 
-.ap3x-footer{padding:12px 16px 20px;font-size:11px;color:var(--light);text-align:center;line-height:1.4;border-top:1px solid var(--border);margin-top:16px}
+/* toasts */
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#1e293b;color:#fff;padding:10px 18px;border-radius:99px;font-size:13px;font-weight:600;z-index:500;animation:toastIn .3s ease;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,.2)}
+.toast.hidden{display:none!important}
+@keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(8px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+
+.ap3x-footer{padding:12px 16px 20px;font-size:11px;color:var(--light);text-align:center;line-height:1.4;border-top:1px solid var(--border)}
+.divider{height:1px;background:var(--border);margin:14px 0}
 .hidden{display:none!important}
-.empty-state{text-align:center;color:var(--muted);font-size:14px;padding:20px 0}
 </style>
 </head>
-<body data-theme="light">
+<body>
 
 <header class="ap3x-header">
   <div class="header-brand">
-    <span class="brand-dot"></span>
+    <div class="brand-dot"></div>
     <span class="brand-name">AP3X</span>
     <span class="brand-sub">AnxietyCore</span>
   </div>
   <div class="header-right">
+    <button class="btn-icon" id="themeToggle" title="Toggle theme">🌙</button>
     <a href="index.html" class="back-link">← Home</a>
-    <button class="btn-icon" id="theme-toggle">🌙</button>
   </div>
 </header>
 
-<div id="streak-banner" class="streak-banner hidden">
-  <span class="streak-fire">🔥</span>
-  <span id="streak-text">0 day streak</span>
+<div class="streak-banner" id="streakBanner">
+  <div class="streak-left"><span class="streak-fire">🔥</span><span id="streakText">5-day streak — keep it up!</span></div>
+  <span class="streak-xp" id="xpText">⚡ 420 XP</span>
 </div>
 
+<!-- HOME TAB -->
+<div class="tab-page" id="tab-home">
+  <div class="home-greeting">
+    <div class="hg-title" id="greetingText">Good morning, Jordan 👋</div>
+    <div class="hg-sub">How are you feeling today? Let's check in.</div>
+  </div>
+
+  <div style="margin-bottom:16px">
+    <div class="form-label">Today's Mood</div>
+    <div class="mood-row">
+      <button class="mood-btn" data-mood="1" onclick="selectMood(1)"><span class="mood-emoji">😰</span><span class="mood-label">Anxious</span></button>
+      <button class="mood-btn" data-mood="2" onclick="selectMood(2)"><span class="mood-emoji">😔</span><span class="mood-label">Low</span></button>
+      <button class="mood-btn" data-mood="3" onclick="selectMood(3)"><span class="mood-emoji">😐</span><span class="mood-label">Neutral</span></button>
+      <button class="mood-btn" data-mood="4" onclick="selectMood(4)"><span class="mood-emoji">🙂</span><span class="mood-label">Good</span></button>
+      <button class="mood-btn" data-mood="5" onclick="selectMood(5)"><span class="mood-emoji">😊</span><span class="mood-label">Great</span></button>
+    </div>
+  </div>
+
+  <div class="quick-actions">
+    <button class="qa-btn" onclick="goTab('checkin')">
+      <span class="qa-icon">📋</span>
+      <span class="qa-label">Check-In</span>
+      <span class="qa-desc">Log how you feel now</span>
+    </button>
+    <button class="qa-btn" onclick="goTab('exercises')">
+      <span class="qa-icon">🫁</span>
+      <span class="qa-label">Breathe</span>
+      <span class="qa-desc">Calm exercises</span>
+    </button>
+    <button class="qa-btn" onclick="goTab('journal')">
+      <span class="qa-icon">📓</span>
+      <span class="qa-label">Journal</span>
+      <span class="qa-desc">Write it out</span>
+    </button>
+    <button class="qa-btn" onclick="goTab('goals')">
+      <span class="qa-icon">🎯</span>
+      <span class="qa-label">Goals</span>
+      <span class="qa-desc">Track progress</span>
+    </button>
+  </div>
+
+  <div class="insight-strip" id="dailyInsight">
+    <h4>💡 Today's Insight</h4>
+    <p id="insightText">Your anxiety scores are lowest on weekends — consider protecting that weekend downtime.</p>
+  </div>
+
+  <div class="chart-wrap">
+    <div class="chart-header">
+      <span class="chart-title">This Week</span>
+      <div class="chart-tabs">
+        <button class="chart-tab active" onclick="switchMiniChart('anxiety',this)">Anxiety</button>
+        <button class="chart-tab" onclick="switchMiniChart('sleep',this)">Sleep</button>
+        <button class="chart-tab" onclick="switchMiniChart('mood',this)">Mood</button>
+      </div>
+    </div>
+    <canvas id="miniChart" height="80"></canvas>
+  </div>
+
+  <button class="btn-emergency" onclick="openEmergency()">🆘 I need help right now</button>
+</div>
+
+<!-- CHECK-IN TAB -->
+<div class="tab-page hidden" id="tab-checkin">
+  <div class="section-title">Daily Check-In</div>
+  <div class="section-sub">Takes about 2 minutes</div>
+
+  <div class="step-progress"><div class="step-progress-bar" id="checkinBar" style="width:20%"></div></div>
+  <div class="step-indicator">
+    <div class="step-dot active" id="sd0"></div>
+    <div class="step-dot" id="sd1"></div>
+    <div class="step-dot" id="sd2"></div>
+    <div class="step-dot" id="sd3"></div>
+    <div class="step-dot" id="sd4"></div>
+  </div>
+
+  <!-- Step 1: Anxiety -->
+  <div class="checkin-step" id="step-0">
+    <div class="scale-wrap">
+      <div class="scale-header"><span class="scale-title">😰 Anxiety Level</span><span style="font-size:12px;color:var(--muted)">Right now</span></div>
+      <div class="scale-labels"><span>None</span><span>Moderate</span><span>Extreme</span></div>
+      <div class="scale-track" id="anxietyScale"></div>
+      <div class="score-display" id="anxietyVal">—</div>
+      <div class="score-label" id="anxietyLabel"></div>
+    </div>
+    <button class="btn-primary" onclick="nextStep(1)">Continue →</button>
+  </div>
+
+  <!-- Step 2: Sleep + Physical -->
+  <div class="checkin-step hidden" id="step-1">
+    <div class="form-card">
+      <div class="form-card-title">😴 Sleep Quality</div>
+      <div class="scale-labels"><span>Poor</span><span>Average</span><span>Excellent</span></div>
+      <div class="scale-track" id="sleepScale"></div>
+      <div class="score-display" id="sleepVal" style="font-size:22px">—</div>
+    </div>
+    <div class="form-card">
+      <div class="form-card-title">💪 Physical Symptoms</div>
+      <div class="tag-group" id="physicalTags">
+        <span class="tag" onclick="toggleTag(this)">Heart racing</span>
+        <span class="tag" onclick="toggleTag(this)">Tight chest</span>
+        <span class="tag" onclick="toggleTag(this)">Sweating</span>
+        <span class="tag" onclick="toggleTag(this)">Nausea</span>
+        <span class="tag" onclick="toggleTag(this)">Shaking</span>
+        <span class="tag" onclick="toggleTag(this)">Headache</span>
+        <span class="tag" onclick="toggleTag(this)">Fatigue</span>
+        <span class="tag" onclick="toggleTag(this)">None</span>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn-secondary" onclick="nextStep(0)">← Back</button>
+      <button class="btn-primary" onclick="nextStep(2)">Continue →</button>
+    </div>
+  </div>
+
+  <!-- Step 3: Triggers -->
+  <div class="checkin-step hidden" id="step-2">
+    <div class="form-card">
+      <div class="form-card-title">⚡ What's triggering you today?</div>
+      <div class="trigger-grid">
+        <div class="trigger-chip" onclick="toggleChip(this)"><span class="tc-icon">💼</span><span class="tc-name">Work/School</span></div>
+        <div class="trigger-chip" onclick="toggleChip(this)"><span class="tc-icon">👥</span><span class="tc-name">Social</span></div>
+        <div class="trigger-chip" onclick="toggleChip(this)"><span class="tc-icon">💰</span><span class="tc-name">Finances</span></div>
+        <div class="trigger-chip" onclick="toggleChip(this)"><span class="tc-icon">❤️</span><span class="tc-name">Relationships</span></div>
+        <div class="trigger-chip" onclick="toggleChip(this)"><span class="tc-icon">🏥</span><span class="tc-name">Health</span></div>
+        <div class="trigger-chip" onclick="toggleChip(this)"><span class="tc-icon">😴</span><span class="tc-name">Poor Sleep</span></div>
+        <div class="trigger-chip" onclick="toggleChip(this)"><span class="tc-icon">🌍</span><span class="tc-name">News/World</span></div>
+        <div class="trigger-chip" onclick="toggleChip(this)"><span class="tc-icon">❓</span><span class="tc-name">Unsure</span></div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn-secondary" onclick="nextStep(1)">← Back</button>
+      <button class="btn-primary" onclick="nextStep(3)">Continue →</button>
+    </div>
+  </div>
+
+  <!-- Step 4: Notes -->
+  <div class="checkin-step hidden" id="step-3">
+    <div class="form-card">
+      <div class="form-card-title">📝 Anything else?</div>
+      <label class="form-label">How are you coping?</label>
+      <div class="tag-group" style="margin-bottom:12px" id="copingTags">
+        <span class="tag" onclick="toggleTag(this)">Deep breathing</span>
+        <span class="tag" onclick="toggleTag(this)">Exercise</span>
+        <span class="tag" onclick="toggleTag(this)">Talking to someone</span>
+        <span class="tag" onclick="toggleTag(this)">Meditation</span>
+        <span class="tag" onclick="toggleTag(this)">Music</span>
+        <span class="tag" onclick="toggleTag(this)">Journaling</span>
+      </div>
+      <label class="form-label">Notes (optional)</label>
+      <textarea class="form-textarea" id="checkinNote" placeholder="Anything you want to add…" rows="3"></textarea>
+    </div>
+    <div class="btn-row">
+      <button class="btn-secondary" onclick="nextStep(2)">← Back</button>
+      <button class="btn-primary" onclick="nextStep(4)">Submit Check-In ✓</button>
+    </div>
+  </div>
+
+  <!-- Step 5: Result -->
+  <div class="checkin-step hidden" id="step-4">
+    <div class="feedback-card" id="feedbackCard">
+      <span class="risk-badge" id="riskBadge">LOW</span>
+      <div class="feedback-sugg" id="feedbackText"></div>
+      <div class="feedback-tip" id="feedbackTip"></div>
+      <div class="feedback-actions" style="margin-top:12px">
+        <button class="btn-sm filled" onclick="goTab('exercises')">🫁 Try Breathing</button>
+        <button class="btn-sm" onclick="goTab('journal')">📓 Journal It</button>
+        <button class="btn-sm" onclick="startNewCheckin()">↩ New Check-In</button>
+      </div>
+    </div>
+    <div style="margin-top:16px;font-size:13px;color:var(--muted);text-align:center">Your clinician has been notified of your check-in ✓</div>
+  </div>
+</div>
+
+<!-- EXERCISES TAB -->
+<div class="tab-page hidden" id="tab-exercises">
+  <div class="section-title">Exercises</div>
+  <div class="section-sub">Breathing, grounding & mindfulness</div>
+
+  <div class="ex-filter">
+    <button class="ex-filter-btn active" onclick="filterEx('all',this)">All</button>
+    <button class="ex-filter-btn" onclick="filterEx('breathing',this)">Breathing</button>
+    <button class="ex-filter-btn" onclick="filterEx('grounding',this)">Grounding</button>
+    <button class="ex-filter-btn" onclick="filterEx('mindfulness',this)">Mindfulness</button>
+    <button class="ex-filter-btn" onclick="filterEx('quick',this)">⚡ Quick</button>
+  </div>
+
+  <div class="ex-cards" id="exCards"></div>
+</div>
+
+<!-- HISTORY TAB -->
+<div class="tab-page hidden" id="tab-history">
+  <div class="section-title">History</div>
+  <div class="section-sub">Your check-in log</div>
+
+  <div class="history-stats">
+    <div class="hstat"><div class="hstat-val" id="avgScore">4.2</div><div class="hstat-lbl">Avg Anxiety</div></div>
+    <div class="hstat"><div class="hstat-val" id="totalCheckins">18</div><div class="hstat-lbl">Check-Ins</div></div>
+    <div class="hstat"><div class="hstat-val" id="improvePct">↓12%</div><div class="hstat-lbl">This Week</div></div>
+  </div>
+
+  <div class="chart-wrap">
+    <div class="chart-header">
+      <span class="chart-title">30-Day Trend</span>
+      <div class="chart-tabs">
+        <button class="chart-tab active" onclick="switchHistChart('anxiety',this)">Anxiety</button>
+        <button class="chart-tab" onclick="switchHistChart('sleep',this)">Sleep</button>
+      </div>
+    </div>
+    <canvas id="histChart" height="100"></canvas>
+  </div>
+
+  <div class="history-list" id="historyList"></div>
+</div>
+
+<!-- JOURNAL TAB -->
+<div class="tab-page hidden" id="tab-journal">
+  <div class="section-title">Journal</div>
+  <div class="section-sub">Private thoughts, prompts & reflections</div>
+
+  <div class="journal-prompts" id="journalPrompts"></div>
+
+  <div class="journal-editor" id="journalEditor">
+    <div class="journal-prompt-text" id="activePrompt">Write freely about how you're feeling today…</div>
+    <textarea class="journal-ta" id="journalTA" placeholder="Start writing…" oninput="updateWC()"></textarea>
+    <div class="journal-footer">
+      <span class="wc" id="wcDisplay">0 words</span>
+      <div style="display:flex;gap:6px">
+        <button class="btn-sm" onclick="clearJournal()">Clear</button>
+        <button class="btn-sm filled" onclick="saveJournal()">Save Entry</button>
+      </div>
+    </div>
+    <div class="mood-tag-row" id="journalMoodTags">
+      <span class="tag" onclick="toggleTag(this)">😰 Anxious</span>
+      <span class="tag" onclick="toggleTag(this)">😔 Sad</span>
+      <span class="tag" onclick="toggleTag(this)">😐 Neutral</span>
+      <span class="tag" onclick="toggleTag(this)">🙂 Hopeful</span>
+      <span class="tag" onclick="toggleTag(this)">😤 Frustrated</span>
+      <span class="tag" onclick="toggleTag(this)">😌 Calm</span>
+    </div>
+  </div>
+
+  <div style="font-size:13px;font-weight:700;margin-bottom:10px">Past Entries</div>
+  <div class="journal-list" id="journalList"></div>
+</div>
+
+<!-- GOALS TAB -->
+<div class="tab-page hidden" id="tab-goals">
+  <div class="section-title">Goals & Habits</div>
+  <div class="section-sub">Build healthy routines</div>
+
+  <div style="font-size:13px;font-weight:700;margin-bottom:8px">🏆 Achievements</div>
+  <div class="achievement-row" id="achievements"></div>
+
+  <div class="goals-header">
+    <span style="font-size:14px;font-weight:700">Active Goals</span>
+    <button class="btn-sm filled" onclick="addGoalPrompt()">+ Add Goal</button>
+  </div>
+  <div id="goalsList"></div>
+</div>
+
+<!-- BOTTOM NAV -->
 <nav class="bottom-nav">
-  <button class="nav-tab active" data-tab="checkin">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-    <span>Check-in</span>
-  </button>
-  <button class="nav-tab" data-tab="history">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-    <span>History</span>
-  </button>
-  <button class="nav-tab" data-tab="exercises">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/></svg>
-    <span>Exercises</span>
-  </button>
-  <button class="nav-tab" data-tab="log">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-    <span>Log</span>
-  </button>
+  <button class="nav-tab active" id="nav-home" onclick="goTab('home')">🏠<span>Home</span></button>
+  <button class="nav-tab" id="nav-checkin" onclick="goTab('checkin')"><span style="font-size:18px">📋</span><span>Check-In</span><div class="notif-dot" id="checkinDot"></div></button>
+  <button class="nav-tab" id="nav-exercises" onclick="goTab('exercises')">🫁<span>Breathe</span></button>
+  <button class="nav-tab" id="nav-history" onclick="goTab('history')">📊<span>History</span></button>
+  <button class="nav-tab" id="nav-journal" onclick="goTab('journal')">📓<span>Journal</span></button>
+  <button class="nav-tab" id="nav-goals" onclick="goTab('goals')">🎯<span>Goals</span></button>
 </nav>
 
-<!-- Check-in -->
-<main id="tab-checkin" class="tab-page">
-  <h2 class="section-title">How are you feeling?</h2>
-  <p class="section-sub">Rate your anxiety level right now</p>
-  <div class="scale-wrap">
-    <div class="scale-labels"><span>Calm</span><span>Moderate</span><span>High</span></div>
-    <div class="scale-track" id="scale-track"></div>
-    <div class="score-display" id="score-display">–</div>
-  </div>
-  <div class="form-block">
-    <label class="form-label">Mood note <span style="font-weight:400;text-transform:none">(optional)</span></label>
-    <textarea id="mood-input" class="form-textarea" placeholder="What's on your mind?" rows="3"></textarea>
-  </div>
-  <div class="form-block">
-    <label class="form-label">Tags</label>
-    <div class="tag-group" id="mood-tags">
-      <button class="tag" data-tag="work">work</button>
-      <button class="tag" data-tag="sleep">sleep</button>
-      <button class="tag" data-tag="social">social</button>
-      <button class="tag" data-tag="physical">physical</button>
-      <button class="tag" data-tag="family">family</button>
-      <button class="tag" data-tag="finances">finances</button>
-    </div>
-  </div>
-  <div class="form-block">
-    <label class="form-label">Sleep last night (hours)</label>
-    <input type="number" id="sleep-input" class="form-input" min="0" max="24" step="0.5" placeholder="e.g. 7"/>
-  </div>
-  <button class="btn-primary" id="submit-checkin">Submit Check-in</button>
-  <div id="feedback-card" class="feedback-card hidden">
-    <div id="feedback-badge" class="risk-badge"></div>
-    <p id="feedback-sugg" class="feedback-sugg"></p>
-  </div>
-  <button class="btn-emergency" id="emergency-btn">⚠️ I need help right now</button>
-</main>
-
-<!-- History -->
-<main id="tab-history" class="tab-page hidden">
-  <h2 class="section-title">Your History</h2>
-  <div class="chart-wrap"><canvas id="hist-chart" height="160"></canvas></div>
-  <div id="history-list" class="history-list"><p class="empty-state">No check-ins yet.</p></div>
-</main>
-
-<!-- Exercises -->
-<main id="tab-exercises" class="tab-page hidden">
-  <h2 class="section-title">Exercises</h2>
-  <p class="section-sub">Breathing and grounding techniques</p>
-  <div class="ex-cards">
-    <div class="ex-card" data-ex="478"><div class="ex-icon">🫁</div><div class="ex-info"><h3>4-7-8 Breathing</h3><p>Inhale 4s · Hold 7s · Exhale 8s</p></div><button class="btn-start-ex">Start</button></div>
-    <div class="ex-card" data-ex="box"><div class="ex-icon">📦</div><div class="ex-info"><h3>Box Breathing</h3><p>In 4s · Hold 4s · Out 4s · Hold 4s</p></div><button class="btn-start-ex">Start</button></div>
-    <div class="ex-card" data-ex="54321"><div class="ex-icon">🌿</div><div class="ex-info"><h3>5-4-3-2-1 Grounding</h3><p>Anchor yourself to the present</p></div><button class="btn-start-ex">Start</button></div>
-    <div class="ex-card" data-ex="recovery"><div class="ex-icon">🌙</div><div class="ex-info"><h3>Recovery Mode</h3><p>Gentle guided relaxation</p></div><button class="btn-start-ex">Start</button></div>
-  </div>
-  <div id="ex-runner" class="ex-runner hidden">
-    <div class="runner-inner">
-      <div style="width:160px;height:160px;display:flex;align-items:center;justify-content:center">
-        <div class="breath-circle" id="breath-circle"></div>
-      </div>
-      <div class="runner-instr" id="runner-instr">Get ready…</div>
-      <div class="runner-step" id="runner-step"></div>
-      <button class="btn-secondary" id="runner-stop" style="max-width:200px">End Exercise</button>
-    </div>
-  </div>
-</main>
-
-<!-- Log -->
-<main id="tab-log" class="tab-page hidden">
-  <h2 class="section-title">Log</h2>
-  <div class="log-section">
-    <h3 class="log-subtitle">Add a Trigger</h3>
-    <input id="trigger-name" class="form-input" placeholder="Trigger name (e.g. work deadline)" style="margin-bottom:10px"/>
-    <textarea id="trigger-desc" class="form-textarea" placeholder="Brief description (optional)" rows="2" style="margin-bottom:10px"></textarea>
-    <div style="margin-bottom:10px">
-      <label class="form-label">Severity: <span id="sev-val">5</span>/10</label>
-      <input type="range" id="trigger-sev" min="1" max="10" value="5" class="form-slider"/>
-    </div>
-    <button class="btn-primary" id="submit-trigger">Log Trigger</button>
-  </div>
-  <div class="log-section">
-    <h3 class="log-subtitle">Recent Triggers</h3>
-    <div id="trigger-list" class="trigger-list"><p class="empty-state">No triggers logged yet.</p></div>
-  </div>
-</main>
-
-<footer class="ap3x-footer">
-  AP3X AnxietyCore is a monitoring tool only. NOT a medical device. Does not provide medical diagnoses. All outputs are informational.
-</footer>
-
-<!-- Emergency modal -->
-<div id="emergency-modal" class="modal hidden">
-  <div class="modal-inner">
-    <h3>You are not alone</h3>
-    <p>If you are in immediate danger, please call emergency services.</p>
-    <a class="btn-emerg-large" href="tel:999">📞 Call for help</a>
-    <button class="btn-secondary" id="close-emergency">Close</button>
+<!-- Exercise runner -->
+<div class="ex-runner hidden" id="exRunner">
+  <div class="runner-inner">
+    <div class="runner-title" id="runnerTitle">4-7-8 Breathing</div>
+    <div class="breath-circle" id="breathCircle"></div>
+    <div class="runner-instr" id="runnerInstr">Inhale</div>
+    <div class="runner-count" id="runnerCount">4</div>
+    <div class="runner-step" id="runnerStep"></div>
+    <div class="runner-progress"><div class="runner-progress-bar" id="runnerProgressBar" style="width:0%"></div></div>
+    <div class="runner-cycles" id="runnerCycles">Cycle 1 of 4</div>
+    <button class="btn-runner-stop" onclick="stopExercise()">✕ End Session</button>
   </div>
 </div>
 
+<!-- Grounding runner -->
+<div class="ex-runner hidden" id="groundRunner">
+  <div class="runner-inner">
+    <div class="runner-title">5-4-3-2-1 Grounding</div>
+    <div class="ground-step">
+      <div class="ground-number" id="groundNum">5</div>
+      <div class="ground-prompt" id="groundPrompt">Things you can SEE</div>
+    </div>
+    <input class="ground-input" id="groundInput" placeholder="Type each one and press Enter…" onkeydown="addGroundItem(event)"/>
+    <div class="ground-list" id="groundList"></div>
+    <div class="runner-cycles" id="groundProgress">0 / 5 named</div>
+    <button class="btn-runner-stop" onclick="stopGrounding()">✕ End Session</button>
+  </div>
+</div>
+
+<!-- Emergency modal -->
+<div class="modal hidden" id="emergencyModal">
+  <div class="modal-inner">
+    <div class="modal-handle"></div>
+    <h3>🆘 You're Not Alone</h3>
+    <p>You're safe. Help is available right now.</p>
+    <a href="tel:116123" class="btn-emerg-large">📞 Call Samaritans: 116 123</a>
+    <a href="sms:85258" class="btn-emerg-large" style="background:#7c3aed">💬 Text SHOUT: 85258</a>
+    <button class="btn-secondary" style="margin-top:8px" onclick="goTab('exercises');closeEmergency()">🫁 Try a Breathing Exercise</button>
+    <button class="btn-secondary" onclick="closeEmergency()">I'm okay, close this</button>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast hidden" id="toast"></div>
+
+<footer class="ap3x-footer">AP3X AnxietyCore v1.0 · Demo Mode · Data stays in your browser</footer>
+
 <script>
-// ── Persistent demo user ID (no login required) ───────────────
-const _userId = "demo_patient_user";
-
-// ── Data store ────────────────────────────────────────────────
-function getStore(k){try{return JSON.parse(localStorage.getItem("ap3x_"+_userId+"_"+k)||"[]")}catch{return[]}}
-function setStore(k,v){localStorage.setItem("ap3x_"+_userId+"_"+k,JSON.stringify(v))}
-
-function saveAnxiety(score,note,sleep){
-  const logs=getStore("anxiety");
-  logs.unshift({id:crypto.randomUUID(),anxiety_score:score,note,sleep_hours:sleep,created_at:new Date().toISOString()});
-  setStore("anxiety",logs.slice(0,500));
-  updateStreak();
-  return logs;
-}
-function saveTrigger(name,desc,sev){
-  const t=getStore("triggers");
-  t.unshift({id:crypto.randomUUID(),trigger_name:name,description:desc,severity:sev,created_at:new Date().toISOString()});
-  setStore("triggers",t.slice(0,200));
-}
-
-// ── Streak ────────────────────────────────────────────────────
-function updateStreak(){
-  const today=new Date().toISOString().slice(0,10);
-  const yesterday=new Date(Date.now()-86400000).toISOString().slice(0,10);
-  const s=JSON.parse(localStorage.getItem("ap3x_"+_userId+"_streak")||'{"current":0,"longest":0,"last":null}');
-  if(s.last===today) return s;
-  const newCur=s.last===yesterday?s.current+1:1;
-  const updated={current:newCur,longest:Math.max(newCur,s.longest),last:today};
-  localStorage.setItem("ap3x_"+_userId+"_streak",JSON.stringify(updated));
-  return updated;
-}
-function renderStreak(){
-  const s=JSON.parse(localStorage.getItem("ap3x_"+_userId+"_streak")||'{"current":0}');
-  if(s.current>0){
-    document.getElementById("streak-text").textContent=s.current+" day streak";
-    document.getElementById("streak-banner").classList.remove("hidden");
-  }
-}
-
-// ── Rules engine ──────────────────────────────────────────────
-function evalEntry(score,sleep){
-  const suggs=[],flags=[];let risk="LOW";
-  if(score>=8){risk="HIGH";flags.push("HIGH_SINGLE_SCORE");suggs.push("Try a breathing exercise now.")}
-  if(sleep!==null&&sleep<4&&score>6){risk="HIGH";flags.push("LOW_SLEEP_HIGH_ANXIETY");suggs.push("Low sleep + high anxiety detected. Consider rest today.")}
-  return{risk,suggs,flags};
-}
-function evalTrend(logs){
-  if(logs.length<3) return{risk:"LOW",suggs:[],flags:[]};
-  if(logs.slice(0,3).every(l=>l.anxiety_score>=6)){
-    return{risk:"MEDIUM",suggs:["Elevated anxiety for several days. Consider speaking with a clinician."],flags:["CONSECUTIVE_MEDIUM_SCORES"]};
-  }
-  return{risk:"LOW",suggs:[],flags:[]};
-}
-const RISK_ORD={LOW:0,MEDIUM:1,HIGH:2,CRITICAL:3};
-function topRisk(a,b){return RISK_ORD[a]>=RISK_ORD[b]?a:b}
-
-// ── Nav ───────────────────────────────────────────────────────
-document.querySelectorAll(".nav-tab").forEach(tab=>{
-  tab.addEventListener("click",()=>{
-    document.querySelectorAll(".nav-tab").forEach(t=>t.classList.remove("active"));
-    document.querySelectorAll(".tab-page").forEach(p=>p.classList.add("hidden"));
-    tab.classList.add("active");
-    document.getElementById("tab-"+tab.dataset.tab).classList.remove("hidden");
-    if(tab.dataset.tab==="history") renderHistory();
-    if(tab.dataset.tab==="log") renderTriggers();
-  });
-});
-
-// ── Scale ─────────────────────────────────────────────────────
-let _score=null;
-const track=document.getElementById("scale-track");
-const disp=document.getElementById("score-display");
-for(let i=0;i<=10;i++){
-  const btn=document.createElement("button");
-  btn.className="scale-btn";btn.dataset.v=String(i);btn.textContent=String(i);
-  btn.addEventListener("click",()=>{
-    _score=i;
-    track.querySelectorAll(".scale-btn").forEach(b=>b.classList.remove("selected"));
-    btn.classList.add("selected");disp.textContent=String(i);
-  });
-  track.appendChild(btn);
-}
-
-// ── Tags ──────────────────────────────────────────────────────
-document.querySelectorAll("#mood-tags .tag").forEach(t=>t.addEventListener("click",()=>t.classList.toggle("active")));
-
-// ── Check-in ──────────────────────────────────────────────────
-document.getElementById("submit-checkin").addEventListener("click",()=>{
-  if(_score===null){toast("Please select your anxiety level.");return}
-  const note=document.getElementById("mood-input").value.trim();
-  const sv=document.getElementById("sleep-input").value;
-  const sleep=sv!==""?parseFloat(sv):null;
-  const logs=saveAnxiety(_score,note,sleep);
-  const eR=evalEntry(_score,sleep);
-  const tR=evalTrend(logs);
-  const finalRisk=topRisk(eR.risk,tR.risk);
-  const suggs=[...eR.suggs,...tR.suggs];
-  const fc=document.getElementById("feedback-card");
-  const fb=document.getElementById("feedback-badge");
-  fb.className="risk-badge "+finalRisk;
-  fb.textContent=finalRisk==="LOW"?"You're doing well":finalRisk;
-  document.getElementById("feedback-sugg").textContent=suggs.join(" ")||"Keep going — check in again tomorrow!";
-  fc.classList.remove("hidden");
-  fc.scrollIntoView({behavior:"smooth",block:"nearest"});
-  _score=null;
-  disp.textContent="–";
-  track.querySelectorAll(".scale-btn").forEach(b=>b.classList.remove("selected"));
-  document.getElementById("mood-input").value="";
-  document.getElementById("sleep-input").value="";
-  document.querySelectorAll("#mood-tags .tag").forEach(t=>t.classList.remove("active"));
-  renderStreak();
-  document.getElementById("streak-banner").classList.remove("hidden");
-});
-
-// ── History ───────────────────────────────────────────────────
-function scoreBg(s){
-  if(s<=3)return{bg:"#d1fae5",c:"#065f46"};
-  if(s<=5)return{bg:"#fef9c3",c:"#713f12"};
-  if(s<=7)return{bg:"#fed7aa",c:"#7c2d12"};
-  return{bg:"#fecaca",c:"#7f1d1d"};
-}
-function renderHistory(){
-  const logs=getStore("anxiety");
-  const list=document.getElementById("history-list");
-  if(!logs.length){list.innerHTML='<p class="empty-state">No check-ins yet. Start your first!</p>';drawChart([]);return}
-  list.innerHTML=logs.slice(0,20).map(e=>{
-    const bg=scoreBg(e.anxiety_score);
-    return`<div class="history-item"><div class="h-score" style="background:${bg.bg};color:${bg.c}">${e.anxiety_score}</div><div class="h-meta"><div class="h-date">${fmtDate(e.created_at)}</div>${e.note?`<div class="h-note">${esc(e.note)}</div>`:""}</div></div>`;
-  }).join("");
-  drawChart(logs.slice(0,20).reverse().map(l=>l.anxiety_score));
-}
-function drawChart(data){
-  const canvas=document.getElementById("hist-chart");if(!canvas)return;
-  const ctx=canvas.getContext("2d");
-  const W=canvas.offsetWidth||340,H=160,dpr=window.devicePixelRatio||1;
-  canvas.width=W*dpr;canvas.height=H*dpr;ctx.scale(dpr,dpr);ctx.clearRect(0,0,W,H);
-  if(data.length<2){ctx.fillStyle="#94a3b8";ctx.font="13px system-ui";ctx.textAlign="center";ctx.fillText("Not enough data yet",W/2,H/2);return}
-  const P={t:12,r:12,b:28,l:28},pW=W-P.l-P.r,pH=H-P.t-P.b;
-  const xp=i=>P.l+(i/(data.length-1))*pW,yp=v=>P.t+(1-v/10)*pH;
-  ctx.strokeStyle="#e2e8f0";ctx.lineWidth=1;
-  [2,4,6,8,10].forEach(v=>{ctx.beginPath();ctx.moveTo(P.l,yp(v));ctx.lineTo(W-P.r,yp(v));ctx.stroke();ctx.fillStyle="#94a3b8";ctx.font="10px system-ui";ctx.textAlign="right";ctx.fillText(String(v),P.l-4,yp(v)+3)});
-  const g=ctx.createLinearGradient(0,P.t,0,H-P.b);
-  g.addColorStop(0,"rgba(239,68,68,0.3)");g.addColorStop(.5,"rgba(245,158,11,0.15)");g.addColorStop(1,"rgba(16,185,129,0.05)");
-  ctx.beginPath();data.forEach((v,i)=>i?ctx.lineTo(xp(i),yp(v)):ctx.moveTo(xp(i),yp(v)));
-  ctx.lineTo(xp(data.length-1),H-P.b);ctx.lineTo(xp(0),H-P.b);ctx.closePath();ctx.fillStyle=g;ctx.fill();
-  ctx.beginPath();ctx.lineWidth=2.5;ctx.strokeStyle="#2563eb";ctx.lineJoin="round";
-  data.forEach((v,i)=>i?ctx.lineTo(xp(i),yp(v)):ctx.moveTo(xp(i),yp(v)));ctx.stroke();
-  data.forEach((v,i)=>{const c=v>=8?"#ef4444":v>=6?"#f59e0b":"#10b981";ctx.beginPath();ctx.arc(xp(i),yp(v),4,0,Math.PI*2);ctx.fillStyle=c;ctx.fill();ctx.strokeStyle="#fff";ctx.lineWidth=1.5;ctx.stroke()});
-}
-
-// ── Exercises ─────────────────────────────────────────────────
-const EX={
-  "478":{steps:[{l:"Inhale",c:"inhale",d:4000},{l:"Hold",c:"hold",d:7000},{l:"Exhale",c:"exhale",d:8000}],cycles:4},
-  "box":{steps:[{l:"Inhale",c:"inhale",d:4000},{l:"Hold",c:"hold",d:4000},{l:"Exhale",c:"exhale",d:4000},{l:"Hold",c:"hold",d:4000}],cycles:4},
-  "54321":{steps:[{l:"Notice 5 things you can SEE",c:"inhale",d:6000},{l:"Notice 4 things you can TOUCH",c:"hold",d:6000},{l:"Notice 3 things you can HEAR",c:"exhale",d:6000},{l:"Notice 2 things you can SMELL",c:"inhale",d:6000},{l:"Notice 1 thing you can TASTE",c:"exhale",d:6000}],cycles:1},
-  "recovery":{steps:[{l:"Breathe in slowly…",c:"inhale",d:5000},{l:"Hold gently…",c:"hold",d:3000},{l:"Let it all go…",c:"exhale",d:7000},{l:"You are safe.",c:"hold",d:4000}],cycles:5}
+// ── State ──────────────────────────────────────────────
+const S = {
+  checkinStep: 0,
+  anxiety: null, sleep: null,
+  physicalTags: [], triggerTags: [], copingTags: [],
+  currentMood: null,
+  xp: 420, streak: 5,
+  exercisesCompleted: JSON.parse(localStorage.getItem('ex_done')||'[]'),
+  journalEntries: JSON.parse(localStorage.getItem('journal')||'[]'),
+  goals: JSON.parse(localStorage.getItem('goals')||'null') || defaultGoals(),
+  checkins: JSON.parse(localStorage.getItem('checkins')||'null') || defaultCheckins(),
 };
-let _exTimer=null;
-document.querySelectorAll(".btn-start-ex").forEach(btn=>{
-  btn.addEventListener("click",()=>startEx(btn.closest(".ex-card").dataset.ex));
-});
-document.getElementById("runner-stop").addEventListener("click",stopEx);
-function startEx(id){const ex=EX[id];if(!ex)return;document.getElementById("ex-runner").classList.remove("hidden");runCycle(ex,0,0)}
-function runCycle(ex,ci,si){
-  if(ci>=ex.cycles){document.getElementById("runner-instr").textContent="Well done 🌿";document.getElementById("runner-step").textContent="";_exTimer=setTimeout(stopEx,2000);return}
-  const step=ex.steps[si];
-  document.getElementById("breath-circle").className="breath-circle "+step.c;
-  document.getElementById("runner-instr").textContent=step.l;
-  document.getElementById("runner-step").textContent="Cycle "+(ci+1)+" of "+ex.cycles;
-  _exTimer=setTimeout(()=>{const ns=si+1;ns>=ex.steps.length?runCycle(ex,ci+1,0):runCycle(ex,ci,ns)},step.d);
-}
-function stopEx(){clearTimeout(_exTimer);document.getElementById("ex-runner").classList.add("hidden");document.getElementById("breath-circle").className="breath-circle"}
 
-// ── Triggers ──────────────────────────────────────────────────
-const sevSlider=document.getElementById("trigger-sev");
-sevSlider.addEventListener("input",()=>document.getElementById("sev-val").textContent=sevSlider.value);
-document.getElementById("submit-trigger").addEventListener("click",()=>{
-  const name=document.getElementById("trigger-name").value.trim();
-  if(!name){toast("Enter a trigger name.");return}
-  saveTrigger(name,document.getElementById("trigger-desc").value.trim(),parseInt(sevSlider.value));
-  document.getElementById("trigger-name").value="";
-  document.getElementById("trigger-desc").value="";
-  sevSlider.value="5";document.getElementById("sev-val").textContent="5";
-  renderTriggers();toast("Trigger logged ✓");
-});
-function renderTriggers(){
-  const list=document.getElementById("trigger-list");
-  const items=getStore("triggers");
-  if(!items.length){list.innerHTML='<p class="empty-state">No triggers logged yet.</p>';return}
-  list.innerHTML=items.slice(0,10).map(t=>`<div class="trigger-item"><div class="t-sev">${t.severity}</div><div><div class="t-name">${esc(t.trigger_name)}</div><div class="t-date">${fmtDate(t.created_at)}</div></div></div>`).join("");
+function defaultGoals(){
+  return [
+    {id:1,name:'Daily Meditation',cat:'Mindfulness',target:7,days:[1,1,1,0,1,1,0],progress:5},
+    {id:2,name:'Morning Walk',cat:'Exercise',target:5,days:[1,1,0,1,1,0,0],progress:4},
+    {id:3,name:'No Phone Before Bed',cat:'Sleep',target:7,days:[0,1,1,1,0,1,1],progress:5},
+  ];
+}
+function defaultCheckins(){
+  const now=Date.now(); const day=86400000;
+  return [
+    {date:now-day*0,anxiety:3,sleep:7,note:'Feeling more calm today',triggers:['Work/School'],coping:['Deep breathing'],risk:'LOW'},
+    {date:now-day*1,anxiety:6,sleep:5,note:'Busy day, work stress',triggers:['Work/School','Social'],coping:['Music'],risk:'MEDIUM'},
+    {date:now-day*2,anxiety:4,sleep:6,note:'',triggers:['Finances'],coping:['Exercise'],risk:'MEDIUM'},
+    {date:now-day*3,anxiety:8,sleep:4,note:'Bad night, panic episode',triggers:['Poor Sleep','Health'],coping:['Deep breathing'],risk:'HIGH'},
+    {date:now-day*4,anxiety:2,sleep:8,note:'Great day!',triggers:[],coping:['Meditation','Exercise'],risk:'LOW'},
+    {date:now-day*5,anxiety:5,sleep:6,note:'Average',triggers:['Work/School'],coping:['Talking to someone'],risk:'MEDIUM'},
+    {date:now-day*6,anxiety:3,sleep:7,note:'Weekend, feeling good',triggers:[],coping:['Journaling'],risk:'LOW'},
+  ];
 }
 
-// ── Emergency ─────────────────────────────────────────────────
-document.getElementById("emergency-btn").addEventListener("click",()=>document.getElementById("emergency-modal").classList.remove("hidden"));
-document.getElementById("close-emergency").addEventListener("click",()=>document.getElementById("emergency-modal").classList.add("hidden"));
+// ── Greeting ──────────────────────────────────────────
+function setGreeting(){
+  const h=new Date().getHours();
+  const g=h<12?'Good morning':'h<17?'Good afternoon':'Good evening';
+  document.getElementById('greetingText').textContent=`${g}, Jordan 👋`;
+}
+setGreeting();
 
-// ── Theme ─────────────────────────────────────────────────────
-const themeBtn=document.getElementById("theme-toggle");
-const savedTheme=localStorage.getItem("ap3x_theme")||"light";
-applyTheme(savedTheme);
-themeBtn.addEventListener("click",()=>{
-  const next=document.body.dataset.theme==="dark"?"light":"dark";
-  applyTheme(next);localStorage.setItem("ap3x_theme",next);
-});
-function applyTheme(t){document.body.dataset.theme=t;themeBtn.textContent=t==="dark"?"☀️":"🌙"}
+// ── Theme ─────────────────────────────────────────────
+let dark=localStorage.getItem('theme')==='dark';
+function applyTheme(){
+  document.documentElement.setAttribute('data-theme',dark?'dark':'');
+  document.getElementById('themeToggle').textContent=dark?'☀️':'🌙';
+}
+applyTheme();
+document.getElementById('themeToggle').onclick=()=>{dark=!dark;localStorage.setItem('theme',dark?'dark':'');applyTheme()};
 
-// ── Boot ──────────────────────────────────────────────────────
-renderStreak();
-renderTriggers();
+// ── Tab nav ───────────────────────────────────────────
+function goTab(t){
+  document.querySelectorAll('.tab-page').forEach(p=>p.classList.add('hidden'));
+  document.querySelectorAll('.nav-tab').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+t).classList.remove('hidden');
+  const nb=document.getElementById('nav-'+t);
+  if(nb)nb.classList.add('active');
+  if(t==='history')renderHistory();
+  if(t==='goals')renderGoals();
+  if(t==='journal')renderJournal();
+  if(t==='exercises')renderExercises();
+}
 
-// ── Helpers ───────────────────────────────────────────────────
-function toast(msg){const t=document.createElement("div");t.style.cssText="position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#1e293b;color:#fff;padding:10px 18px;border-radius:8px;font-size:14px;z-index:500;";t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),2500)}
-function fmtDate(iso){return new Date(iso).toLocaleDateString(undefined,{month:"short",day:"numeric",hour:"2-digit",minute:"2-digit"})}
-function esc(s){return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}
+// ── Mood ──────────────────────────────────────────────
+function selectMood(v){
+  S.currentMood=v;
+  document.querySelectorAll('.mood-btn').forEach(b=>b.classList.remove('selected'));
+  document.querySelector(`.mood-btn[data-mood="${v}"]`).classList.add('selected');
+  const labels=['','Feeling anxious 😰','Feeling low 😔','Feeling neutral 😐','Feeling good 🙂','Feeling great 😊'];
+  showToast(labels[v]);
+}
+
+// ── Scale builders ────────────────────────────────────
+function buildScale(containerId, valueId, labelId, max=10){
+  const c=document.getElementById(containerId);
+  c.innerHTML='';
+  for(let i=0;i<=max;i++){
+    const b=document.createElement('button');
+    b.className='scale-btn'; b.textContent=i; b.dataset.v=i;
+    b.onclick=()=>{
+      c.querySelectorAll('.scale-btn').forEach(x=>x.classList.remove('selected'));
+      b.classList.add('selected');
+      const vEl=document.getElementById(valueId);
+      if(vEl)vEl.textContent=i;
+      if(valueId==='anxietyVal'){
+        S.anxiety=i;
+        const lbl=document.getElementById('anxietyLabel');
+        if(lbl)lbl.textContent=i<=2?'✅ Minimal':i<=4?'🟡 Mild':i<=6?'🟠 Moderate':i<=8?'🔴 High':'🔴 Severe';
+      }
+      if(valueId==='sleepVal') S.sleep=i;
+    };
+    c.appendChild(b);
+  }
+}
+buildScale('anxietyScale','anxietyVal','anxietyLabel',10);
+buildScale('sleepScale','sleepVal','sleepValLabel',10);
+
+// ── Tags ──────────────────────────────────────────────
+function toggleTag(el){el.classList.toggle('active')}
+function toggleChip(el){el.classList.toggle('active')}
+
+// ── Checkin steps ─────────────────────────────────────
+function nextStep(n){
+  document.getElementById('step-'+S.checkinStep).classList.add('hidden');
+  S.checkinStep=n;
+  document.getElementById('step-'+n).classList.remove('hidden');
+  const pct=Math.round((n/4)*100);
+  document.getElementById('checkinBar').style.width=Math.max(pct,10)+'%';
+  for(let i=0;i<5;i++){
+    const d=document.getElementById('sd'+i);
+    d.classList.toggle('active',i===n);
+    d.classList.toggle('done',i<n);
+  }
+  if(n===4) submitCheckin();
+}
+function startNewCheckin(){
+  S.checkinStep=0; S.anxiety=null; S.sleep=null;
+  document.querySelectorAll('.checkin-step').forEach(s=>s.classList.add('hidden'));
+  document.getElementById('step-0').classList.remove('hidden');
+  document.getElementById('checkinBar').style.width='10%';
+}
+function submitCheckin(){
+  const anxiety=S.anxiety??5;
+  const risk=anxiety<=3?'LOW':anxiety<=6?'MEDIUM':anxiety<=8?'HIGH':'CRITICAL';
+  const msgs={
+    LOW:'Great job checking in! Your anxiety is low today. Keep up with your coping strategies — they\'re working.',
+    MEDIUM:'You\'re managing. Your anxiety is moderate — consider a breathing exercise or short walk to help reset.',
+    HIGH:'Your anxiety is elevated. Please try the 4-7-8 breathing exercise and reach out to your support network.',
+    CRITICAL:'Your anxiety is very high right now. Your clinician has been flagged. Please use the emergency resources if needed.'
+  };
+  const tips={
+    LOW:'💡 Tip: Even on good days, 5 minutes of mindfulness helps maintain your baseline.',
+    MEDIUM:'💡 Tip: Progressive muscle relaxation can quickly reduce physical tension.',
+    HIGH:'💡 Tip: Box breathing (4-4-4-4) is proven to activate the parasympathetic nervous system.',
+    CRITICAL:'💡 Tip: Grounding techniques — name 5 things you can see right now.'
+  };
+  document.getElementById('riskBadge').textContent=risk;
+  document.getElementById('riskBadge').className='risk-badge '+risk;
+  document.getElementById('feedbackText').textContent=msgs[risk];
+  document.getElementById('feedbackTip').textContent=tips[risk];
+  const fc=document.getElementById('feedbackCard');
+  fc.className='feedback-card'+(risk==='HIGH'?' risk-high':risk==='CRITICAL'?' risk-critical':'');
+  // Save
+  S.checkins.unshift({date:Date.now(),anxiety,sleep:S.sleep??6,note:document.getElementById('checkinNote').value,triggers:[],coping:[],risk});
+  localStorage.setItem('checkins',JSON.stringify(S.checkins));
+  S.xp+=50; S.streak+=0;
+  document.getElementById('xpText').textContent=`⚡ ${S.xp} XP`;
+  document.getElementById('checkinDot').style.display='none';
+  showToast('✅ Check-in saved! +50 XP');
+  renderMiniChart('anxiety');
+}
+
+// ── Mini chart ────────────────────────────────────────
+let miniChartInstance=null;
+function renderMiniChart(type){
+  const c=document.getElementById('miniChart');
+  const data=S.checkins.slice(0,7).reverse().map(ci=>type==='anxiety'?ci.anxiety:type==='sleep'?ci.sleep:ci.anxiety);
+  const labels=S.checkins.slice(0,7).reverse().map(ci=>{const d=new Date(ci.date);return['Su','Mo','Tu','We','Th','Fr','Sa'][d.getDay()]});
+  drawLineChart(c,labels,data,type==='sleep'?'#10b981':'#2563eb',type==='sleep'?'rgba(16,185,129,.15)':'rgba(37,99,235,.15)');
+}
+function switchMiniChart(type,btn){
+  document.querySelectorAll('#tab-home .chart-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderMiniChart(type);
+}
+renderMiniChart('anxiety');
+
+let histChartInstance=null;
+function renderHistChart(type){
+  const c=document.getElementById('histChart');
+  const data=S.checkins.slice(0,14).reverse().map(ci=>type==='anxiety'?ci.anxiety:ci.sleep);
+  const labels=S.checkins.slice(0,14).reverse().map(ci=>{const d=new Date(ci.date);return`${d.getDate()}/${d.getMonth()+1}`});
+  drawLineChart(c,labels,data,type==='sleep'?'#10b981':'#2563eb',type==='sleep'?'rgba(16,185,129,.15)':'rgba(37,99,235,.15)');
+}
+function switchHistChart(type,btn){
+  document.querySelectorAll('#tab-history .chart-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderHistChart(type);
+}
+
+function drawLineChart(canvas,labels,data,color,fill){
+  const W=canvas.offsetWidth||340,H=parseInt(canvas.getAttribute('height'))||100;
+  canvas.width=W; canvas.height=H;
+  const ctx=canvas.getContext('2d');
+  ctx.clearRect(0,0,W,H);
+  const pad=14,max=Math.max(...data,10),min=0;
+  const xStep=(W-pad*2)/(data.length-1||1);
+  const yScale=(H-pad*2)/(max-min||1);
+  // grid
+  ctx.strokeStyle='rgba(148,163,184,.15)';ctx.lineWidth=1;
+  for(let g=0;g<=2;g++){
+    const y=pad+g*(H-pad*2)/2;
+    ctx.beginPath();ctx.moveTo(pad,y);ctx.lineTo(W-pad,y);ctx.stroke();
+  }
+  // fill
+  ctx.beginPath();
+  data.forEach((v,i)=>{const x=pad+i*xStep,y=H-pad-(v-min)*yScale;i===0?ctx.moveTo(x,y):ctx.lineTo(x,y)});
+  ctx.lineTo(pad+(data.length-1)*xStep,H-pad);ctx.lineTo(pad,H-pad);ctx.closePath();
+  ctx.fillStyle=fill;ctx.fill();
+  // line
+  ctx.beginPath();ctx.strokeStyle=color;ctx.lineWidth=2.5;ctx.lineJoin='round';
+  data.forEach((v,i)=>{const x=pad+i*xStep,y=H-pad-(v-min)*yScale;i===0?ctx.moveTo(x,y):ctx.lineTo(x,y)});
+  ctx.stroke();
+  // dots
+  data.forEach((v,i)=>{
+    const x=pad+i*xStep,y=H-pad-(v-min)*yScale;
+    ctx.beginPath();ctx.arc(x,y,3.5,0,Math.PI*2);
+    ctx.fillStyle=color;ctx.fill();
+    ctx.fillStyle=dark?'#131f35':'#fff';ctx.beginPath();ctx.arc(x,y,1.8,0,Math.PI*2);ctx.fill();
+  });
+  // labels
+  ctx.fillStyle='#94a3b8';ctx.font='10px sans-serif';ctx.textAlign='center';
+  labels.forEach((l,i)=>{ctx.fillText(l,pad+i*xStep,H-1)});
+}
+
+// ── History ───────────────────────────────────────────
+function renderHistory(){
+  renderHistChart('anxiety');
+  const avg=(S.checkins.reduce((a,c)=>a+c.anxiety,0)/S.checkins.length).toFixed(1);
+  document.getElementById('avgScore').textContent=avg;
+  document.getElementById('totalCheckins').textContent=S.checkins.length;
+  const recent=S.checkins.slice(0,7).reduce((a,c)=>a+c.anxiety,0)/7;
+  const older=S.checkins.slice(7,14).reduce((a,c)=>a+c.anxiety,0)/7||recent;
+  const chg=Math.round((recent-older)/older*100);
+  document.getElementById('improvePct').textContent=(chg<=0?'↓'+Math.abs(chg):'↑'+chg)+'%';
+  const colors={LOW:'#d1fae5',MEDIUM:'#fef3c7',HIGH:'#fee2e2',CRITICAL:'#ede9fe'};
+  const tc={LOW:'#065f46',MEDIUM:'#92400e',HIGH:'#991b1b',CRITICAL:'#4c1d95'};
+  document.getElementById('historyList').innerHTML=S.checkins.map(ci=>{
+    const d=new Date(ci.date);
+    const sc=ci.anxiety;
+    const bg=sc<=3?'#d1fae5':sc<=6?'#fef3c7':'#fee2e2';
+    const col=sc<=3?'#065f46':sc<=6?'#92400e':'#991b1b';
+    return `<div class="history-item">
+      <div class="h-score" style="background:${bg};color:${col}">${sc}</div>
+      <div class="h-meta">
+        <div class="h-date">${d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'})} · ${d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}</div>
+        <div class="h-note">${ci.note||'No notes'}</div>
+        <div class="h-tags">${(ci.triggers||[]).map(t=>`<span class="h-tag">${t}</span>`).join('')}<span class="h-tag" style="background:${colors[ci.risk]};color:${tc[ci.risk]}">${ci.risk}</span></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── Exercises ─────────────────────────────────────────
+const EXERCISES=[
+  {id:'478',cat:'breathing',icon:'🫁',iconBg:'blue',name:'4-7-8 Breathing',desc:'Calms the nervous system fast',time:'5 min',level:'Beginner'},
+  {id:'box',cat:'breathing',icon:'⬛',iconBg:'blue',name:'Box Breathing',desc:'Used by Navy SEALs for stress',time:'4 min',level:'Beginner'},
+  {id:'54321',cat:'grounding',icon:'🌿',iconBg:'green',name:'5-4-3-2-1 Grounding',desc:'Anchor to the present moment',time:'3 min',level:'Beginner'},
+  {id:'pmr',cat:'mindfulness',icon:'💆',iconBg:'purple',name:'Progressive Muscle Relaxation',desc:'Release tension from head to toe',time:'10 min',level:'Intermediate'},
+  {id:'breath2x',cat:'breathing',icon:'🌬️',iconBg:'blue',name:'2:1 Breathing',desc:'Exhale twice as long as inhale',time:'3 min',level:'Beginner'},
+  {id:'body',cat:'mindfulness',icon:'🧘',iconBg:'purple',name:'Body Scan',desc:'Full mindful awareness exercise',time:'8 min',level:'Intermediate'},
+  {id:'cold',cat:'quick',icon:'💧',iconBg:'green',name:'Cold Water Reset',desc:'Activate the dive reflex instantly',time:'1 min',level:'Quick'},
+  {id:'senses',cat:'quick',icon:'👁️',iconBg:'orange',name:'Sensory Pause',desc:'Notice one thing per sense',time:'2 min',level:'Quick'},
+];
+let exFilter='all';
+function filterEx(f,btn){
+  exFilter=f;
+  document.querySelectorAll('.ex-filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderExercises();
+}
+function renderExercises(){
+  const list=exFilter==='all'?EXERCISES:EXERCISES.filter(e=>e.cat===exFilter);
+  document.getElementById('exCards').innerHTML=list.map(e=>{
+    const done=S.exercisesCompleted.includes(e.id);
+    return `<div class="ex-card">
+      <div class="ex-icon ${e.iconBg}">${e.icon}</div>
+      <div class="ex-info">
+        <h3>${e.name}</h3>
+        <p>${e.desc}</p>
+        <div class="ex-meta"><span class="ex-pill">⏱ ${e.time}</span><span class="ex-pill">${e.level}</span></div>
+      </div>
+      ${done?'<div class="ex-completed-badge">✅ Done</div>':`<button class="btn-start-ex" onclick="startExercise('${e.id}')">Start</button>`}
+    </div>`;
+  }).join('');
+}
+renderExercises();
+
+// ── Breathing runner ───────────────────────────────────
+let breathInterval=null, breathCycle=0, breathMaxCycles=4, breathPhaseTimer=null;
+function startExercise(id){
+  if(id==='54321'){startGrounding();return;}
+  if(id==='cold'){showToast('💧 Splash cold water on your face or hold your wrists under cold water for 30 seconds.');return;}
+  if(id==='senses'){showToast('👁️ Notice: 1 thing you can touch, hear, smell, see, taste.');return;}
+  const patterns={
+    '478':{name:'4-7-8 Breathing',phases:[{l:'Inhale',d:4,c:'inhale'},{l:'Hold',d:7,c:'hold'},{l:'Exhale',d:8,c:'exhale'}],cycles:4},
+    'box':{name:'Box Breathing',phases:[{l:'Inhale',d:4,c:'inhale'},{l:'Hold',d:4,c:'hold'},{l:'Exhale',d:4,c:'exhale'},{l:'Hold',d:4,c:'hold'}],cycles:4},
+    'breath2x':{name:'2:1 Breathing',phases:[{l:'Inhale',d:4,c:'inhale'},{l:'Exhale',d:8,c:'exhale'}],cycles:6},
+    'pmr':{name:'Progressive Relaxation',phases:[{l:'Tense',d:5,c:'hold'},{l:'Relax',d:10,c:'exhale'}],cycles:5},
+    'body':{name:'Body Scan',phases:[{l:'Breathe In',d:4,c:'inhale'},{l:'Breathe Out',d:6,c:'exhale'}],cycles:8},
+  };
+  const p=patterns[id]||patterns['478'];
+  document.getElementById('runnerTitle').textContent=p.name;
+  document.getElementById('exRunner').classList.remove('hidden');
+  breathCycle=0; breathMaxCycles=p.cycles;
+  runBreath(p.phases, p.cycles);
+}
+function runBreath(phases, maxCycles, phaseIdx=0){
+  if(breathCycle>=maxCycles){stopExercise();return;}
+  const phase=phases[phaseIdx%phases.length];
+  const bc=document.getElementById('breathCircle');
+  bc.className='breath-circle '+phase.c;
+  document.getElementById('runnerInstr').textContent=phase.l;
+  document.getElementById('runnerCycles').textContent=`Cycle ${breathCycle+1} of ${maxCycles}`;
+  document.getElementById('runnerProgressBar').style.width=((breathCycle/maxCycles)*100)+'%';
+  let t=phase.d;
+  document.getElementById('runnerCount').textContent=t;
+  clearInterval(breathInterval);
+  breathInterval=setInterval(()=>{
+    t--;document.getElementById('runnerCount').textContent=t;
+    if(t<=0){
+      clearInterval(breathInterval);
+      const nextIdx=phaseIdx+1;
+      if(nextIdx%phases.length===0) breathCycle++;
+      runBreath(phases,maxCycles,nextIdx);
+    }
+  },1000);
+}
+function stopExercise(){
+  clearInterval(breathInterval);
+  document.getElementById('exRunner').classList.add('hidden');
+  const lastId=document.querySelector('.btn-start-ex:focus')?.dataset?.id;
+  showToast('🎉 Exercise complete! +30 XP');
+  S.xp+=30;
+  document.getElementById('xpText').textContent=`⚡ ${S.xp} XP`;
+  renderExercises();
+}
+
+// ── Grounding runner ───────────────────────────────────
+const groundSteps=[
+  {n:5,sense:'SEE'},
+  {n:4,sense:'TOUCH'},
+  {n:3,sense:'HEAR'},
+  {n:2,sense:'SMELL'},
+  {n:1,sense:'TASTE'},
+];
+let groundStepIdx=0, groundItems=[];
+function startGrounding(){
+  groundStepIdx=0; groundItems=[];
+  document.getElementById('groundList').innerHTML='';
+  document.getElementById('groundInput').value='';
+  updateGroundUI();
+  document.getElementById('groundRunner').classList.remove('hidden');
+  setTimeout(()=>document.getElementById('groundInput').focus(),100);
+}
+function updateGroundUI(){
+  const s=groundSteps[groundStepIdx];
+  document.getElementById('groundNum').textContent=s.n;
+  document.getElementById('groundPrompt').textContent=`Things you can ${s.sense}`;
+  document.getElementById('groundProgress').textContent=`${groundItems.length} / ${s.n} named`;
+}
+function addGroundItem(e){
+  if(e.key!=='Enter'&&e.key!==',') return;
+  const val=document.getElementById('groundInput').value.trim();
+  if(!val) return;
+  groundItems.push(val);
+  document.getElementById('groundInput').value='';
+  const li=document.createElement('div');
+  li.className='ground-list-item';li.textContent='✓ '+val;
+  document.getElementById('groundList').appendChild(li);
+  const s=groundSteps[groundStepIdx];
+  document.getElementById('groundProgress').textContent=`${groundItems.length} / ${s.n} named`;
+  if(groundItems.length>=s.n){
+    groundStepIdx++;
+    groundItems=[];
+    document.getElementById('groundList').innerHTML='';
+    if(groundStepIdx>=groundSteps.length){stopGrounding();return;}
+    setTimeout(updateGroundUI,400);
+  }
+}
+function stopGrounding(){
+  document.getElementById('groundRunner').classList.add('hidden');
+  showToast('🌿 Grounding complete! You did great. +30 XP');
+  S.xp+=30;
+  document.getElementById('xpText').textContent=`⚡ ${S.xp} XP`;
+}
+
+// ── Journal ───────────────────────────────────────────
+const PROMPTS=[
+  'What made you feel anxious today?',
+  'What are 3 things you\'re grateful for?',
+  'What would you tell a friend feeling this way?',
+  'What is one small thing you can control right now?',
+  'Describe a moment of peace this week.',
+  'What do you need most today?',
+];
+function renderJournal(){
+  const pEl=document.getElementById('journalPrompts');
+  pEl.innerHTML=PROMPTS.map((p,i)=>`<button class="jp-btn" onclick="setJournalPrompt(${i},this)">${p.substring(0,28)}…</button>`).join('');
+  renderJournalList();
+}
+function setJournalPrompt(i,btn){
+  document.getElementById('activePrompt').textContent=PROMPTS[i];
+  document.getElementById('journalTA').focus();
+  document.querySelectorAll('.jp-btn').forEach(b=>b.style.borderColor='');
+  btn.style.borderColor='var(--primary)';
+  btn.style.color='var(--primary)';
+}
+function updateWC(){
+  const words=document.getElementById('journalTA').value.trim().split(/\s+/).filter(Boolean).length;
+  document.getElementById('wcDisplay').textContent=words+' word'+(words===1?'':'s');
+}
+function saveJournal(){
+  const text=document.getElementById('journalTA').value.trim();
+  if(!text){showToast('Write something first!');return;}
+  const moodTags=[...document.querySelectorAll('#journalMoodTags .tag.active')].map(t=>t.textContent);
+  S.journalEntries.unshift({date:Date.now(),text,prompt:document.getElementById('activePrompt').textContent,moods:moodTags});
+  localStorage.setItem('journal',JSON.stringify(S.journalEntries));
+  document.getElementById('journalTA').value='';
+  document.querySelectorAll('#journalMoodTags .tag').forEach(t=>t.classList.remove('active'));
+  updateWC();
+  showToast('📓 Entry saved! +20 XP');
+  S.xp+=20;
+  renderJournalList();
+}
+function clearJournal(){document.getElementById('journalTA').value='';updateWC();}
+function renderJournalList(){
+  document.getElementById('journalList').innerHTML=S.journalEntries.length?
+    S.journalEntries.map(e=>{
+      const d=new Date(e.date);
+      return `<div class="jl-item">
+        <div class="jl-date">${d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</div>
+        <div class="jl-excerpt">${e.text.substring(0,120)}${e.text.length>120?'…':''}</div>
+        <div class="jl-mood">${(e.moods||[]).join(' ')}</div>
+      </div>`;
+    }).join(''):
+    '<div style="color:var(--muted);font-size:13px;text-align:center;padding:20px">No journal entries yet</div>';
+}
+
+// ── Goals ─────────────────────────────────────────────
+const ACHIEVEMENTS=[
+  {icon:'🔥',name:'5-Day Streak',locked:false},
+  {icon:'📋',name:'First Check-In',locked:false},
+  {icon:'🫁',name:'Breathwork Pro',locked:false},
+  {icon:'📓',name:'Journaler',locked:true},
+  {icon:'🌙',name:'Sleep Tracker',locked:true},
+  {icon:'🏆',name:'30 Check-Ins',locked:true},
+];
+function renderGoals(){
+  document.getElementById('achievements').innerHTML=ACHIEVEMENTS.map(a=>
+    `<div class="achievement${a.locked?' locked':''}"><span class="ach-icon">${a.icon}</span><span class="ach-name">${a.name}</span></div>`
+  ).join('');
+  document.getElementById('goalsList').innerHTML=S.goals.map(g=>{
+    const pct=Math.round((g.days.filter(Boolean).length/g.target)*100);
+    return `<div class="goal-card">
+      <div class="goal-top">
+        <div><div class="goal-name">${g.name}</div><div class="goal-cat">${g.cat}</div></div>
+        <div style="font-size:15px;font-weight:800;color:var(--accent)">${pct}%</div>
+      </div>
+      <div class="goal-progress-wrap"><div class="goal-progress-bar" style="width:${pct}%"></div></div>
+      <div class="goal-footer"><span>${g.days.filter(Boolean).length}/${g.target} days this week</span></div>
+      <div class="goal-check-row">${g.days.map((d,i)=>`<div class="goal-day${d?' done':''}${i===new Date().getDay()?' today':''}" onclick="toggleGoalDay(${g.id},${i})">${['S','M','T','W','T','F','S'][i]}</div>`).join('')}</div>
+    </div>`;
+  }).join('');
+}
+function toggleGoalDay(gid,day){
+  const g=S.goals.find(x=>x.id===gid);
+  if(g){g.days[day]=g.days[day]?0:1;localStorage.setItem('goals',JSON.stringify(S.goals));renderGoals();showToast(g.days[day]?'✅ Day marked!':'Day unmarked');}
+}
+function addGoalPrompt(){
+  const name=prompt('Goal name:');
+  if(!name)return;
+  const cat=prompt('Category (e.g. Sleep, Exercise, Mindfulness):','Mindfulness');
+  S.goals.push({id:Date.now(),name,cat:cat||'Other',target:7,days:[0,0,0,0,0,0,0],progress:0});
+  localStorage.setItem('goals',JSON.stringify(S.goals));
+  renderGoals();
+  showToast('🎯 Goal added!');
+}
+
+// ── Emergency ─────────────────────────────────────────
+function openEmergency(){document.getElementById('emergencyModal').classList.remove('hidden')}
+function closeEmergency(){document.getElementById('emergencyModal').classList.add('hidden')}
+
+// ── Toast ─────────────────────────────────────────────
+let toastTimer=null;
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.remove('hidden');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.add('hidden'),2800);
+}
+
+// ── Init ──────────────────────────────────────────────
+window.addEventListener('resize',()=>{renderMiniChart('anxiety')});
 </script>
 </body>
 </html>
